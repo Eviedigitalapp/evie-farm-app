@@ -1,0 +1,358 @@
+import { useState } from 'react';
+import { CreditCard, Smartphone, CheckCircle, XCircle, Loader, ArrowLeft } from 'lucide-react';
+import type { Subscription, Payment, PaymentMethod } from '../types/commercial';
+
+interface PaymentPageProps {
+  subscription: Subscription;
+  userPhone: string;
+  userEmail: string;
+  userFullName: string;
+  onBack: () => void;
+  onSuccess: () => void;
+}
+
+export function PaymentPage({ subscription, userPhone, userEmail, userFullName, onBack, onSuccess }: PaymentPageProps) {
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('mtn-mobile-money');
+  const [phoneNumber, setPhoneNumber] = useState(userPhone);
+  const [processing, setProcessing] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'success' | 'failed'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // PesaPal API Configuration
+  const PESAPAL_CONSUMER_KEY = 'RvD7gs+l7x8sm+gA0gB7ZYPZNE4YWqo9';
+  const PESAPAL_CONSUMER_SECRET = 'kWboa/Ae9danIBqS6beyNP61BAA=';
+  // IPN ID is optional - you can add it later for automatic callbacks
+  const PESAPAL_IPN_ID = ''; // Leave empty to skip IPN for now
+
+  const handlePayment = async () => {
+    setProcessing(true);
+    setPaymentStatus('pending');
+    setErrorMessage('');
+
+    // Validate phone number
+    if (!phoneNumber || phoneNumber.length < 10) {
+      setErrorMessage('Please enter a valid phone number');
+      setProcessing(false);
+      setPaymentStatus('failed');
+      return;
+    }
+
+    // Create payment record
+    const payment: Payment = {
+      id: `payment_${Date.now()}`,
+      subscriptionId: subscription.id,
+      userId: subscription.userId,
+      amount: subscription.planAmount,
+      currency: subscription.currency,
+      status: 'pending',
+      paymentMethod: paymentMethod,
+      phoneNumber: phoneNumber,
+      createdAt: new Date().toISOString()
+    };
+
+    // Save payment to localStorage
+    const paymentsData = localStorage.getItem('evie_payments');
+    const payments: Payment[] = paymentsData ? JSON.parse(paymentsData) : [];
+    payments.push(payment);
+    localStorage.setItem('evie_payments', JSON.stringify(payments));
+
+    // Real PesaPal integration - ACTIVE
+    try {
+      // Step 1: Get OAuth token from PesaPal
+      const authResponse = await fetch('https://pay.pesapal.com/v3/api/Auth/RequestToken', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          consumer_key: PESAPAL_CONSUMER_KEY,
+          consumer_secret: PESAPAL_CONSUMER_SECRET
+        })
+      });
+
+      const authData = await authResponse.json();
+
+      if (!authData.token) {
+        throw new Error('Failed to authenticate with PesaPal');
+      }
+
+      const token = authData.token;
+
+      // Step 2: Submit order request
+      const orderPayload: any = {
+        id: payment.id,
+        currency: payment.currency,
+        amount: payment.amount,
+        description: 'Evie Farm Monthly Subscription',
+        callback_url: window.location.origin,
+        billing_address: {
+          phone_number: phoneNumber,
+          email_address: userEmail || 'user@eviefarm.com',
+          country_code: 'UG',
+          first_name: userFullName?.split(' ')[0] || 'Farmer',
+          last_name: userFullName?.split(' ')[1] || 'User'
+        }
+      };
+
+      // Only add notification_id if we have one
+      if (PESAPAL_IPN_ID) {
+        orderPayload.notification_id = PESAPAL_IPN_ID;
+      }
+
+      const orderResponse = await fetch('https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(orderPayload)
+      });
+
+      const orderData = await orderResponse.json();
+
+      if (orderData.status === '200' && orderData.redirect_url) {
+        // Save PesaPal reference
+        payment.pesapalRef = orderData.order_tracking_id;
+        const updatedPayments = payments.map(p => p.id === payment.id ? payment : p);
+        localStorage.setItem('evie_payments', JSON.stringify(updatedPayments));
+
+        // Redirect user to PesaPal for payment
+        window.location.href = orderData.redirect_url;
+      } else {
+        throw new Error(orderData.message || 'Payment failed');
+      }
+    } catch (error: any) {
+      setPaymentStatus('failed');
+      setErrorMessage(error.message || 'Payment failed. Please try again.');
+      payment.status = 'failed';
+      setProcessing(false);
+
+      const updatedPayments = payments.map(p => p.id === payment.id ? payment : p);
+      localStorage.setItem('evie_payments', JSON.stringify(updatedPayments));
+    }
+
+    // DEMO MODE DISABLED - Real PesaPal integration is active
+    /*
+    // DEMO MODE: Simulate successful payment after 3 seconds
+    setTimeout(() => {
+      // Update payment status
+      payment.status = 'successful';
+      payment.completedAt = new Date().toISOString();
+      payment.transactionRef = `DEMO_${Date.now()}`;
+
+      const updatedPayments = payments.map(p => p.id === payment.id ? payment : p);
+      localStorage.setItem('evie_payments', JSON.stringify(updatedPayments));
+
+      // Update subscription to active
+      const subscriptionsData = localStorage.getItem('evie_subscriptions');
+      const subscriptions: Subscription[] = subscriptionsData ? JSON.parse(subscriptionsData) : [];
+      const subIndex = subscriptions.findIndex(s => s.id === subscription.id);
+
+      if (subIndex !== -1) {
+        const now = new Date();
+        const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        subscriptions[subIndex] = {
+          ...subscriptions[subIndex],
+          status: 'active',
+          lastPaymentDate: now.toISOString(),
+          nextPaymentDate: nextMonth.toISOString(),
+          currentPeriodStart: now.toISOString(),
+          currentPeriodEnd: nextMonth.toISOString(),
+          paymentMethod: paymentMethod
+        };
+
+        localStorage.setItem('evie_subscriptions', JSON.stringify(subscriptions));
+      }
+
+      setPaymentStatus('success');
+      setProcessing(false);
+
+      setTimeout(() => {
+        onSuccess();
+      }, 2000);
+    }, 3000);
+    */
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4">
+      <div className="max-w-2xl mx-auto py-8">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Dashboard
+          </button>
+
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Subscribe to Evie Farm</h1>
+          <p className="text-lg text-gray-600">Continue managing your farm with full access</p>
+        </div>
+
+        {/* Payment Status */}
+        {paymentStatus === 'success' && (
+          <div className="bg-green-50 border-2 border-green-500 rounded-lg p-6 mb-6 flex items-center gap-4">
+            <CheckCircle className="w-12 h-12 text-green-600" />
+            <div>
+              <h3 className="text-xl font-bold text-green-900">Payment Successful!</h3>
+              <p className="text-green-700">Your subscription is now active. Redirecting...</p>
+            </div>
+          </div>
+        )}
+
+        {paymentStatus === 'failed' && (
+          <div className="bg-red-50 border-2 border-red-500 rounded-lg p-6 mb-6">
+            <div className="flex items-center gap-4 mb-2">
+              <XCircle className="w-8 h-8 text-red-600" />
+              <h3 className="text-xl font-bold text-red-900">Payment Failed</h3>
+            </div>
+            <p className="text-red-700">{errorMessage || 'Please try again or contact support.'}</p>
+          </div>
+        )}
+
+        {/* Pricing Card */}
+        <div className="bg-gradient-to-br from-green-600 to-emerald-600 rounded-lg shadow-xl p-8 text-white mb-6">
+          <h2 className="text-2xl font-bold mb-4">Premium Plan</h2>
+          <div className="flex items-baseline gap-2 mb-4">
+            <span className="text-5xl font-bold">UGX 40,000</span>
+            <span className="text-xl">/month</span>
+          </div>
+          <ul className="space-y-2">
+            <li className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Unlimited farms and staff
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Crop & livestock management
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Financial tracking & reports
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Offline access
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Mobile Money payments
+            </li>
+          </ul>
+        </div>
+
+        {/* Payment Form */}
+        {paymentStatus !== 'success' && (
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Choose Payment Method</h3>
+
+            {/* Payment Method Selection */}
+            <div className="space-y-3 mb-6">
+              <button
+                onClick={() => setPaymentMethod('mtn-mobile-money')}
+                className={`w-full p-4 border-2 rounded-lg flex items-center justify-between transition-all ${
+                  paymentMethod === 'mtn-mobile-money'
+                    ? 'border-yellow-500 bg-yellow-50'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Smartphone className="w-6 h-6 text-yellow-600" />
+                  <div className="text-left">
+                    <p className="font-bold text-gray-900">MTN Mobile Money</p>
+                    <p className="text-sm text-gray-600">Pay with MTN MoMo</p>
+                  </div>
+                </div>
+                {paymentMethod === 'mtn-mobile-money' && (
+                  <CheckCircle className="w-6 h-6 text-yellow-600" />
+                )}
+              </button>
+
+              <button
+                onClick={() => setPaymentMethod('airtel-money')}
+                className={`w-full p-4 border-2 rounded-lg flex items-center justify-between transition-all ${
+                  paymentMethod === 'airtel-money'
+                    ? 'border-red-500 bg-red-50'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Smartphone className="w-6 h-6 text-red-600" />
+                  <div className="text-left">
+                    <p className="font-bold text-gray-900">Airtel Money</p>
+                    <p className="text-sm text-gray-600">Pay with Airtel Money</p>
+                  </div>
+                </div>
+                {paymentMethod === 'airtel-money' && (
+                  <CheckCircle className="w-6 h-6 text-red-600" />
+                )}
+              </button>
+            </div>
+
+            {/* Phone Number Input */}
+            <div className="mb-6">
+              <label className="block text-base font-bold text-gray-700 mb-2">
+                {paymentMethod === 'mtn-mobile-money' ? 'MTN' : 'Airtel'} Mobile Money Number
+              </label>
+              <div className="relative">
+                <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="tel"
+                  placeholder="+256 700 123 456"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 min-h-[48px] border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg"
+                />
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                You'll receive a prompt on your phone to authorize the payment
+              </p>
+            </div>
+
+            {/* PesaPal Active Notice */}
+            <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4 mb-6">
+              <p className="text-sm font-semibold text-green-900 mb-2">
+                ✅ PesaPal Integration Active
+              </p>
+              <p className="text-sm text-green-800">
+                Real Mobile Money payments are now enabled. You'll be redirected to PesaPal to complete your payment securely. Enter your MTN or Airtel number and you'll receive a payment prompt on your phone.
+              </p>
+            </div>
+
+            {/* Payment Button */}
+            <button
+              onClick={handlePayment}
+              disabled={processing || !phoneNumber}
+              className={`w-full px-6 py-4 min-h-[56px] rounded-lg font-bold text-lg transition-all flex items-center justify-center gap-3 ${
+                processing || !phoneNumber
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
+              }`}
+            >
+              {processing ? (
+                <>
+                  <Loader className="w-6 h-6 animate-spin" />
+                  Processing Payment...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-6 h-6" />
+                  Pay UGX 40,000
+                </>
+              )}
+            </button>
+
+            <p className="text-xs text-center text-gray-500 mt-4">
+              Secure payment powered by PesaPal
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

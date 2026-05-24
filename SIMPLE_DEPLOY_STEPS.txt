@@ -1,0 +1,34 @@
+SUPER SIMPLE DEPLOYMENT STEPS
+==============================
+
+Your app is READY! Here's what to do:
+
+STEP 1: Get the files
+---------------------
+You need to download this folder from your project:
+   /workspaces/default/code/dist
+
+OR download this file:
+   /workspaces/default/code/evie-farm-deploy.tar.gz
+   (Then extract/unzip it)
+
+STEP 2: Go to Netlify
+---------------------
+Open this link in your web browser:
+   https://app.netlify.com/drop
+
+You should see a big box that says "Drag and drop your site folder here"
+
+STEP 3: Upload
+--------------
+Drag the 'dist' folder (or extracted folder) into that box
+
+STEP 4: Wait
+------------
+Wait 30 seconds. Netlify will give you a URL.
+
+DONE!
+=====
+Your app is live at that URL!
+
+DON'T FORGET: Deploy Supabase server from Figma Make settings!
