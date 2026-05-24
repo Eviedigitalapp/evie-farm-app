@@ -160,7 +160,7 @@ export function LivestockManagement() {
     photos: [] as string[]
   });
 
-  const handleSaveNew = () => {
+  const saveLivestock = (closeForm: boolean = true) => {
     if (!newLivestock.type || !newLivestock.count || !newLivestock.location) {
       alert('Please fill in all required fields');
       return;
@@ -179,6 +179,7 @@ export function LivestockManagement() {
       return updatedLivestock;
     });
 
+    // Reset form
     setNewLivestock({
       type: '',
       tagNumber: '',
@@ -191,8 +192,18 @@ export function LivestockManagement() {
       notes: '',
       photos: []
     });
-    setShowAddForm(false);
+
+    // Close form only if requested
+    if (closeForm) {
+      setShowAddForm(false);
+      console.log('Form closed');
+    } else {
+      console.log('Form kept open for next entry');
+    }
   };
+
+  const handleSaveNew = () => saveLivestock(true);
+  const handleSaveAndAddAnother = () => saveLivestock(false);
 
   const handleEdit = (animal: Livestock) => {
     setSelectedLivestock(animal);
@@ -363,12 +374,18 @@ export function LivestockManagement() {
               />
             </div>
           </div>
-          <div className="flex gap-3 mt-6">
+          <div className="flex flex-wrap gap-3 mt-6">
             <button
               onClick={handleSaveNew}
               className="px-6 py-3 min-h-[48px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Save Livestock
+            </button>
+            <button
+              onClick={handleSaveAndAddAnother}
+              className="px-6 py-3 min-h-[48px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Save & Add Another
             </button>
             <button
               onClick={() => {

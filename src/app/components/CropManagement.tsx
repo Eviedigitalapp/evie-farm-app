@@ -110,7 +110,7 @@ export function CropManagement() {
     photos: [] as string[]
   });
 
-  const handleSave = () => {
+  const saveCrop = (closeForm: boolean = true) => {
     console.log('Save button clicked!');
     console.log('newCrop data:', newCrop);
 
@@ -135,7 +135,7 @@ export function CropManagement() {
       return updatedCrops;
     });
 
-    // Reset form and close
+    // Reset form
     setNewCrop({
       name: '',
       field: '',
@@ -147,9 +147,18 @@ export function CropManagement() {
       healthScore: 80,
       photos: []
     });
-    setShowAddForm(false);
-    console.log('Form closed');
+
+    // Close form only if requested
+    if (closeForm) {
+      setShowAddForm(false);
+      console.log('Form closed');
+    } else {
+      console.log('Form kept open for next entry');
+    }
   };
+
+  const handleSave = () => saveCrop(true);
+  const handleSaveAndAddAnother = () => saveCrop(false);
 
   const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this crop?')) {
@@ -261,12 +270,18 @@ export function CropManagement() {
               />
             </div>
           </div>
-          <div className="flex gap-3 mt-6">
+          <div className="flex flex-wrap gap-3 mt-6">
             <button
               onClick={handleSave}
               className="px-6 py-3 min-h-[48px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               Save Crop
+            </button>
+            <button
+              onClick={handleSaveAndAddAnother}
+              className="px-6 py-3 min-h-[48px] bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Save & Add Another
             </button>
             <button
               onClick={() => {
