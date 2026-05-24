@@ -127,9 +127,15 @@ export function CropManagement() {
     };
 
     console.log('New crop:', crop);
-    setCrops([...crops, crop]);
-    console.log('Crop added to list');
 
+    // Use functional update to ensure we get the latest crops state
+    setCrops((prevCrops) => {
+      const updatedCrops = [...prevCrops, crop];
+      console.log('Crop added to list. Total crops:', updatedCrops.length);
+      return updatedCrops;
+    });
+
+    // Reset form and close
     setNewCrop({
       name: '',
       field: '',

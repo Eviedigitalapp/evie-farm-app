@@ -172,7 +172,13 @@ export function LivestockManagement() {
       tagNumber: newLivestock.tagNumber || `${newLivestock.type.substring(0,2).toUpperCase()}-${Date.now().toString().slice(-3)}`
     };
 
-    setLivestock([...livestock, animal]);
+    // Use functional update to ensure we get the latest livestock state
+    setLivestock((prevLivestock) => {
+      const updatedLivestock = [...prevLivestock, animal];
+      console.log('Livestock added. Total:', updatedLivestock.length);
+      return updatedLivestock;
+    });
+
     setNewLivestock({
       type: '',
       tagNumber: '',
