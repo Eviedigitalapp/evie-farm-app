@@ -56,79 +56,45 @@ export function PaymentPage({ subscription, userPhone, userEmail, userFullName, 
     payments.push(payment);
     localStorage.setItem('evie_payments', JSON.stringify(payments));
 
-    // Real PesaPal integration - ACTIVE
+    // Call backend to initiate PesaPal payment (avoids CORS issues)
     try {
-      // Determine API base URL based on mode
-      const PESAPAL_API_URL = PESAPAL_MODE === 'sandbox'
-        ? 'https://cybqa.pesapal.com/pesapalv3'
-        : 'https://pay.pesapal.com/v3';
+      console.log('Initiating PesaPal payment via backend...');
 
-      console.log(`PesaPal Payment - Mode: ${PESAPAL_MODE}`);
-
-      // Step 1: Get OAuth token from PesaPal
-      const authResponse = await fetch(`${PESAPAL_API_URL}/api/Auth/RequestToken`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          consumer_key: PESAPAL_CONSUMER_KEY,
-          consumer_secret: PESAPAL_CONSUMER_SECRET
-        })
-      });
-
-      const authData = await authResponse.json();
-
-      if (!authData.token) {
-        throw new Error('Failed to authenticate with PesaPal');
-      }
-
-      const token = authData.token;
-
-      // Step 2: Submit order request
-      const orderPayload: any = {
-        id: payment.id,
-        currency: payment.currency,
-        amount: payment.amount,
-        description: 'Evie Farm Monthly Subscription',
-        callback_url: window.location.origin,
-        billing_address: {
-          phone_number: phoneNumber,
-          email_address: userEmail || 'user@eviefarm.com',
-          country_code: 'UG',
-          first_name: userFullName?.split(' ')[0] || 'Farmer',
-          last_name: userFullName?.split(' ')[1] || 'User'
+      const response = await fetch(
+        `https://scykjqlxmntepotaogyy.supabase.co/functions/v1/hyper-handler/pesapal/initiate`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjeWtqcWx4bW50ZXBvdGFvZ3l5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0MDYyODEsImV4cCI6MjA5NDk4MjI4MX0.6Q1Ud5awuqCj60ycaWWn_kwGBy68MB4vvzr1za2AtOs`
+          },
+          body: JSON.stringify({
+            amount: payment.amount,
+            currency: payment.currency,
+            description: 'Evie Farm Subscription',
+            phoneNumber: phoneNumber,
+            email: userEmail || 'user@eviefarm.com',
+            firstName: userFullName?.split(' ')[0] || 'Farmer',
+            lastName: userFullName?.split(' ')[1] || 'User',
+            orderId: payment.id
+          })
         }
-      };
+      );
 
-      // Only add notification_id if we have one
-      if (PESAPAL_IPN_ID) {
-        orderPayload.notification_id = PESAPAL_IPN_ID;
-      }
+      const result = await response.json();
+      console.log('Backend response:', result);
 
-      const orderResponse = await fetch(`${PESAPAL_API_URL}/api/Transactions/SubmitOrderRequest`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(orderPayload)
-      });
-
-      const orderData = await orderResponse.json();
-
-      if (orderData.status === '200' && orderData.redirect_url) {
+      if (result.success && result.redirect_url) {
         // Save PesaPal reference
-        payment.pesapalRef = orderData.order_tracking_id;
+        payment.pesapalRef = result.order_tracking_id;
         const updatedPayments = payments.map(p => p.id === payment.id ? payment : p);
         localStorage.setItem('evie_payments', JSON.stringify(updatedPayments));
 
+        console.log('Redirecting to PesaPal:', result.redirect_url);
         // Redirect user to PesaPal for payment
-        window.location.href = orderData.redirect_url;
+        window.location.href = result.redirect_url;
       } else {
-        throw new Error(orderData.message || 'Payment failed');
+        throw new Error(result.error || 'Payment initiation failed');
       }
     } catch (error: any) {
       setPaymentStatus('failed');
