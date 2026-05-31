@@ -18,11 +18,11 @@ export function PaymentPage({ subscription, userPhone, userEmail, userFullName, 
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'success' | 'failed'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // PesaPal API Configuration
-  const PESAPAL_CONSUMER_KEY = 'RvD7gs+l7x8sm+gA0gB7ZYPZNE4YWqo9';
-  const PESAPAL_CONSUMER_SECRET = 'kWboa/Ae9danIBqS6beyNP61BAA=';
-  // IPN ID is optional - you can add it later for automatic callbacks
-  const PESAPAL_IPN_ID = ''; // Leave empty to skip IPN for now
+  // PesaPal API Configuration from environment variables
+  const PESAPAL_CONSUMER_KEY = import.meta.env.VITE_PESAPAL_CONSUMER_KEY || '';
+  const PESAPAL_CONSUMER_SECRET = import.meta.env.VITE_PESAPAL_CONSUMER_SECRET || '';
+  const PESAPAL_MODE = import.meta.env.VITE_PESAPAL_MODE || 'live'; // 'sandbox' or 'live'
+  const PESAPAL_IPN_ID = import.meta.env.VITE_PESAPAL_IPN_ID || ''; // Optional callback ID
 
   const handlePayment = async () => {
     setProcessing(true);
@@ -58,8 +58,15 @@ export function PaymentPage({ subscription, userPhone, userEmail, userFullName, 
 
     // Real PesaPal integration - ACTIVE
     try {
+      // Determine API base URL based on mode
+      const PESAPAL_API_URL = PESAPAL_MODE === 'sandbox'
+        ? 'https://cybqa.pesapal.com/pesapalv3'
+        : 'https://pay.pesapal.com/v3';
+
+      console.log(`PesaPal Payment - Mode: ${PESAPAL_MODE}`);
+
       // Step 1: Get OAuth token from PesaPal
-      const authResponse = await fetch('https://pay.pesapal.com/v3/api/Auth/RequestToken', {
+      const authResponse = await fetch(`${PESAPAL_API_URL}/api/Auth/RequestToken`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +107,7 @@ export function PaymentPage({ subscription, userPhone, userEmail, userFullName, 
         orderPayload.notification_id = PESAPAL_IPN_ID;
       }
 
-      const orderResponse = await fetch('https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest', {
+      const orderResponse = await fetch(`${PESAPAL_API_URL}/api/Transactions/SubmitOrderRequest`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
