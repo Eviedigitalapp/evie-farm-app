@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Sprout, Beef, DollarSign, Menu, X, Users, Settings as SettingsIcon, LogOut, Sun, Clock, CheckCircle, Star, Wifi, Shield, BarChart3, Smartphone, Download, Eye, EyeOff, Plus, Trash2, Edit, TrendingUp, TrendingDown, AlertCircle, Heart } from 'lucide-react';
+import { LayoutDashboard, Sprout, Beef, DollarSign, Menu, X, Users, Settings as SettingsIcon, LogOut, Sun, Clock, CheckCircle, Star, Wifi, Shield, BarChart3, Smartphone, Download, Eye, EyeOff, Plus, Trash2, TrendingUp, TrendingDown, AlertCircle, Heart } from 'lucide-react';
 import { getSession, signOut } from '../utils/supabaseClient';
 
 type View = 'dashboard' | 'crops' | 'livestock' | 'money' | 'people' | 'settings';
 type AppMode = 'landing' | 'auth' | 'app';
 
-// ============ LANDING PAGE ============
+const WHATSAPP_URL = "https://wa.me/256782016339?text=Hi%2C+I+want+to+activate+my+Evie+Farm+App.+I+have+paid+UGX+200%2C000+via+Mobile+Money.+My+name+is+";
+
 function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstall, setShowInstall] = useState(false);
@@ -40,7 +41,7 @@ function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
             <div className="flex items-baseline justify-center gap-2 mb-1">
               <span className="text-5xl font-bold text-green-700">UGX 200,000</span>
             </div>
-            <p className="text-gray-400 mb-4">≈ $54 USD · Pay via MTN or Airtel Money</p>
+            <p className="text-gray-400 mb-4">Pay via MTN or Airtel Money</p>
             <div className="space-y-3 mb-6 text-left">
               {['Crops & livestock tracking','Staff check-in / check-out','Financial records & reports','Works offline — no internet needed','Installs on Android & iPhone','All future updates included'].map(f => (
                 <div key={f} className="flex items-center gap-3"><CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" /><span className="text-gray-700">{f}</span></div>
@@ -52,7 +53,7 @@ function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
           <div className="bg-white bg-opacity-20 border border-white border-opacity-30 rounded-2xl p-6 max-w-md mx-auto mb-8">
             <div className="flex items-center gap-3 mb-4"><Smartphone className="w-6 h-6 text-white" /><h3 className="text-white font-bold text-lg">Install on Your Phone</h3></div>
             <div className="space-y-2 text-left">
-              {[['1','Open in Chrome (Android) or Safari (iPhone)'],['2','Tap menu (⋮ or Share button)'],['3','Tap "Add to Home Screen"']].map(([n,t]) => (
+              {[['1','Open in Chrome (Android) or Safari (iPhone)'],['2','Tap menu (three dots or Share button)'],['3','Tap "Add to Home Screen"']].map(([n,t]) => (
                 <div key={n} className="flex items-start gap-3">
                   <span className="bg-white text-green-700 w-6 h-6 rounded-full flex items-center justify-center font-bold flex-shrink-0 text-sm">{n}</span>
                   <p className="text-green-50">{t}</p>
@@ -79,7 +80,6 @@ function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
   );
 }
 
-// ============ AUTH ============
 function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm: any) => void }) {
   const [mode, setMode] = useState<'login'|'register'>('login');
   const [showPass, setShowPass] = useState(false);
@@ -170,7 +170,7 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
               </div>
               <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
                 <h4 className="font-bold text-green-900 mb-1">7 Days Free Trial</h4>
-                <p className="text-sm text-green-800">Full access free for 7 days. After trial: pay UGX 200,000 once via MTN/Airtel. No monthly fees ever.</p>
+                <p className="text-sm text-green-800">Full access free for 7 days. After trial: pay UGX 200,000 once. No monthly fees ever.</p>
               </div>
               <button type="submit" className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold text-lg shadow-lg">Start Free Trial</button>
             </form>
@@ -182,7 +182,6 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
   );
 }
 
-// ============ PAYMENT BANNER ============
 function PaymentBanner({ user }: { user: any }) {
   const [dismissed, setDismissed] = useState(false);
   const [daysLeft, setDaysLeft] = useState(7);
@@ -206,16 +205,15 @@ function PaymentBanner({ user }: { user: any }) {
           <div>
             <p className="font-bold text-sm">{expired ? 'Trial ended — Activate Now!' : `${daysLeft} day${daysLeft===1?'':'s'} left in your free trial`}</p>
             <p className="text-green-100 text-sm mt-0.5">Send UGX 200,000 via MTN/Airtel to: <strong>0782016339</strong> or <strong>0704296938</strong></p>
-            <p className="text-xs mt-1 opacity-80">WhatsApp after payment: <strong>+256782016339</strong> for instant activation</p>
+            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="inline-block mt-2 px-4 py-1.5 bg-white text-green-700 rounded-lg font-bold text-sm hover:bg-green-50">💬 WhatsApp to Activate</a>
           </div>
         </div>
-        {!expired && <button onClick={() => setDismissed(true)} className="opacity-70 hover:opacity-100"><X className="w-5 h-5" /></button>}
+        {!expired && <button onClick={() => setDismissed(true)} className="opacity-70 hover:opacity-100 flex-shrink-0"><X className="w-5 h-5" /></button>}
       </div>
     </div>
   );
 }
 
-// ============ DASHBOARD ============
 function Dashboard() {
   const stats = [
     { label: 'Total Crops', value: '7', icon: Sprout, color: 'bg-green-100 text-green-700', sub: '2 ready for harvest' },
@@ -245,7 +243,7 @@ function Dashboard() {
         ))}
       </div>
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2"><AlertCircle className="w-5 h-5 text-orange-500" />Alerts & Notifications</h2>
+        <h2 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2"><AlertCircle className="w-5 h-5 text-orange-500" />Alerts</h2>
         <div className="space-y-3">
           {alerts.map((a, i) => (
             <div key={i} className={`flex items-start gap-3 p-3 rounded-lg ${a.level==='high'?'bg-red-50 border border-red-200':'bg-orange-50 border border-orange-200'}`}>
@@ -271,7 +269,6 @@ function Dashboard() {
   );
 }
 
-// ============ CROPS ============
 function CropsView() {
   const [crops, setCrops] = useState(() => JSON.parse(localStorage.getItem('evie_crops') || JSON.stringify([
     { id: 1, name: 'Coffee (Robusta)', area: '2 acres', status: 'Growing', health: 88, planted: '2025-01-15', expectedHarvest: '2026-06-01' },
@@ -281,21 +278,12 @@ function CropsView() {
   ])));
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', area: '', status: 'Growing', planted: '', expectedHarvest: '' });
-
   const save = () => {
     const updated = [...crops, { ...form, id: Date.now(), health: 85 }];
-    setCrops(updated);
-    localStorage.setItem('evie_crops', JSON.stringify(updated));
-    setForm({ name: '', area: '', status: 'Growing', planted: '', expectedHarvest: '' });
-    setShowForm(false);
+    setCrops(updated); localStorage.setItem('evie_crops', JSON.stringify(updated));
+    setForm({ name: '', area: '', status: 'Growing', planted: '', expectedHarvest: '' }); setShowForm(false);
   };
-
-  const remove = (id: number) => {
-    const updated = crops.filter((c: any) => c.id !== id);
-    setCrops(updated);
-    localStorage.setItem('evie_crops', JSON.stringify(updated));
-  };
-
+  const remove = (id: number) => { const u = crops.filter((c: any) => c.id !== id); setCrops(u); localStorage.setItem('evie_crops', JSON.stringify(u)); };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -325,10 +313,7 @@ function CropsView() {
         {crops.map((crop: any) => (
           <div key={crop.id} className="bg-white rounded-xl border border-gray-200 p-5">
             <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg">{crop.name}</h3>
-                <p className="text-gray-600">{crop.area}</p>
-              </div>
+              <div><h3 className="font-bold text-gray-900 text-lg">{crop.name}</h3><p className="text-gray-600">{crop.area}</p></div>
               <div className="flex items-center gap-2">
                 <span className={`px-3 py-1 rounded-full text-sm font-semibold ${crop.status==='Ready'?'bg-green-100 text-green-700':crop.status==='Harvesting'?'bg-yellow-100 text-yellow-700':'bg-blue-100 text-blue-700'}`}>{crop.status}</span>
                 <button onClick={() => remove(crop.id)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
@@ -347,7 +332,6 @@ function CropsView() {
   );
 }
 
-// ============ LIVESTOCK ============
 function LivestockView() {
   const [animals, setAnimals] = useState(() => JSON.parse(localStorage.getItem('evie_livestock') || JSON.stringify([
     { id: 1, type: 'Chickens', count: 120, health: 'Good', notes: 'Laying hens' },
@@ -358,23 +342,13 @@ function LivestockView() {
   ])));
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ type: '', count: '', health: 'Good', notes: '' });
-
   const save = () => {
     const updated = [...animals, { ...form, id: Date.now(), count: Number(form.count) }];
-    setAnimals(updated);
-    localStorage.setItem('evie_livestock', JSON.stringify(updated));
-    setForm({ type: '', count: '', health: 'Good', notes: '' });
-    setShowForm(false);
+    setAnimals(updated); localStorage.setItem('evie_livestock', JSON.stringify(updated));
+    setForm({ type: '', count: '', health: 'Good', notes: '' }); setShowForm(false);
   };
-
-  const remove = (id: number) => {
-    const updated = animals.filter((a: any) => a.id !== id);
-    setAnimals(updated);
-    localStorage.setItem('evie_livestock', JSON.stringify(updated));
-  };
-
+  const remove = (id: number) => { const u = animals.filter((a: any) => a.id !== id); setAnimals(u); localStorage.setItem('evie_livestock', JSON.stringify(u)); };
   const total = animals.reduce((sum: number, a: any) => sum + Number(a.count), 0);
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -403,10 +377,7 @@ function LivestockView() {
         {animals.map((a: any) => (
           <div key={a.id} className="bg-white rounded-xl border border-gray-200 p-5">
             <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg">{a.type}</h3>
-                <p className="text-3xl font-bold text-blue-600">{a.count} <span className="text-base text-gray-500 font-normal">animals</span></p>
-              </div>
+              <div><h3 className="font-bold text-gray-900 text-lg">{a.type}</h3><p className="text-3xl font-bold text-blue-600">{a.count} <span className="text-base text-gray-500 font-normal">animals</span></p></div>
               <div className="flex items-center gap-2">
                 <span className={`px-3 py-1 rounded-full text-sm font-semibold ${a.health==='Excellent'?'bg-green-100 text-green-700':a.health==='Good'?'bg-blue-100 text-blue-700':a.health==='Fair'?'bg-yellow-100 text-yellow-700':'bg-red-100 text-red-700'}`}>{a.health}</span>
                 <button onClick={() => remove(a.id)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
@@ -420,7 +391,6 @@ function LivestockView() {
   );
 }
 
-// ============ MONEY ============
 function MoneyView() {
   const [transactions, setTransactions] = useState(() => JSON.parse(localStorage.getItem('evie_transactions') || JSON.stringify([
     { id: 1, type: 'income', category: 'Coffee Sales', amount: 450000, date: '2026-05-20', notes: 'Sold 100kg' },
@@ -432,25 +402,15 @@ function MoneyView() {
   ])));
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ type: 'income', category: '', amount: '', date: new Date().toISOString().split('T')[0], notes: '' });
-
   const save = () => {
     const updated = [{ ...form, id: Date.now(), amount: Number(form.amount) }, ...transactions];
-    setTransactions(updated);
-    localStorage.setItem('evie_transactions', JSON.stringify(updated));
-    setForm({ type: 'income', category: '', amount: '', date: new Date().toISOString().split('T')[0], notes: '' });
-    setShowForm(false);
+    setTransactions(updated); localStorage.setItem('evie_transactions', JSON.stringify(updated));
+    setForm({ type: 'income', category: '', amount: '', date: new Date().toISOString().split('T')[0], notes: '' }); setShowForm(false);
   };
-
-  const remove = (id: number) => {
-    const updated = transactions.filter((t: any) => t.id !== id);
-    setTransactions(updated);
-    localStorage.setItem('evie_transactions', JSON.stringify(updated));
-  };
-
+  const remove = (id: number) => { const u = transactions.filter((t: any) => t.id !== id); setTransactions(u); localStorage.setItem('evie_transactions', JSON.stringify(u)); };
   const totalIncome = transactions.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + Number(t.amount), 0);
   const totalExpenses = transactions.filter((t: any) => t.type === 'expense').reduce((s: number, t: any) => s + Number(t.amount), 0);
   const profit = totalIncome - totalExpenses;
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -458,9 +418,9 @@ function MoneyView() {
         <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-semibold"><Plus className="w-5 h-5" />Add Record</button>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-green-50 border-2 border-green-200 rounded-xl p-5"><p className="text-sm font-semibold text-green-700 mb-1">Total Income</p><p className="text-2xl font-bold text-green-700">UGX {totalIncome.toLocaleString()}</p></div>
-        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-5"><p className="text-sm font-semibold text-red-700 mb-1">Total Expenses</p><p className="text-2xl font-bold text-red-700">UGX {totalExpenses.toLocaleString()}</p></div>
-        <div className={`${profit>=0?'bg-emerald-50 border-emerald-200':'bg-orange-50 border-orange-200'} border-2 rounded-xl p-5`}><p className={`text-sm font-semibold mb-1 ${profit>=0?'text-emerald-700':'text-orange-700'}`}>Net Profit</p><p className={`text-2xl font-bold ${profit>=0?'text-emerald-700':'text-orange-700'}`}>UGX {profit.toLocaleString()}</p></div>
+        <div className="bg-green-50 border-2 border-green-200 rounded-xl p-5"><p className="text-sm font-semibold text-green-700 mb-1">Total Income</p><p className="text-xl font-bold text-green-700">UGX {totalIncome.toLocaleString()}</p></div>
+        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-5"><p className="text-sm font-semibold text-red-700 mb-1">Total Expenses</p><p className="text-xl font-bold text-red-700">UGX {totalExpenses.toLocaleString()}</p></div>
+        <div className={`${profit>=0?'bg-emerald-50 border-emerald-200':'bg-orange-50 border-orange-200'} border-2 rounded-xl p-5`}><p className={`text-sm font-semibold mb-1 ${profit>=0?'text-emerald-700':'text-orange-700'}`}>Net Profit</p><p className={`text-xl font-bold ${profit>=0?'text-emerald-700':'text-orange-700'}`}>UGX {profit.toLocaleString()}</p></div>
       </div>
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -504,7 +464,6 @@ function MoneyView() {
   );
 }
 
-// ============ PEOPLE ============
 function PeopleView() {
   const [staff, setStaff] = useState(() => JSON.parse(localStorage.getItem('evie_staff') || JSON.stringify([
     { id: 1, name: 'Okello James', role: 'Farm Manager', phone: '+256 701 234 567', salary: 300000, checkedIn: false },
@@ -513,29 +472,14 @@ function PeopleView() {
   ])));
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', role: '', phone: '', salary: '' });
-
   const save = () => {
     const updated = [...staff, { ...form, id: Date.now(), salary: Number(form.salary), checkedIn: false }];
-    setStaff(updated);
-    localStorage.setItem('evie_staff', JSON.stringify(updated));
-    setForm({ name: '', role: '', phone: '', salary: '' });
-    setShowForm(false);
+    setStaff(updated); localStorage.setItem('evie_staff', JSON.stringify(updated));
+    setForm({ name: '', role: '', phone: '', salary: '' }); setShowForm(false);
   };
-
-  const toggleCheckIn = (id: number) => {
-    const updated = staff.map((s: any) => s.id === id ? { ...s, checkedIn: !s.checkedIn } : s);
-    setStaff(updated);
-    localStorage.setItem('evie_staff', JSON.stringify(updated));
-  };
-
-  const remove = (id: number) => {
-    const updated = staff.filter((s: any) => s.id !== id);
-    setStaff(updated);
-    localStorage.setItem('evie_staff', JSON.stringify(updated));
-  };
-
+  const toggleCheckIn = (id: number) => { const u = staff.map((s: any) => s.id === id ? { ...s, checkedIn: !s.checkedIn } : s); setStaff(u); localStorage.setItem('evie_staff', JSON.stringify(u)); };
+  const remove = (id: number) => { const u = staff.filter((s: any) => s.id !== id); setStaff(u); localStorage.setItem('evie_staff', JSON.stringify(u)); };
   const checkedIn = staff.filter((s: any) => s.checkedIn).length;
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -579,7 +523,6 @@ function PeopleView() {
   );
 }
 
-// ============ SETTINGS ============
 function SettingsView({ user, farm }: { user: any; farm: any }) {
   return (
     <div className="space-y-6">
@@ -604,17 +547,19 @@ function SettingsView({ user, farm }: { user: any; farm: any }) {
       <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6">
         <h2 className="font-bold text-lg text-green-900 mb-2">Activate Lifetime License</h2>
         <p className="text-green-800 mb-4">Send UGX 200,000 via MTN or Airtel Money to activate your lifetime license.</p>
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-yellow-600" /><div><p className="font-bold">MTN Mobile Money</p><p className="text-gray-600">0782016339</p></div></div>
-          <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-red-600" /><div><p className="font-bold">Airtel Money</p><p className="text-gray-600">0704296938</p></div></div>
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-yellow-600" /><div><p className="font-bold">MTN Mobile Money</p><p className="text-gray-600 font-semibold">0782016339</p></div></div>
+          <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-red-600" /><div><p className="font-bold">Airtel Money</p><p className="text-gray-600 font-semibold">0704296938</p></div></div>
         </div>
-        <p className="text-sm text-green-700 mt-4">After payment, WhatsApp <strong>+256782016339</strong> with your name and phone number for instant activation.</p>
+        <p className="text-sm text-green-700 mb-3">After payment, click the button below and send us your name and payment details for instant activation.</p>
+        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center gap-2 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors">
+          💬 WhatsApp Us to Activate Now
+        </a>
       </div>
     </div>
   );
 }
 
-// ============ MAIN APP ============
 export default function AppCommercial() {
   const [appMode, setAppMode] = useState<AppMode>('landing');
   const [currentUser, setCurrentUser] = useState<any>(null);
