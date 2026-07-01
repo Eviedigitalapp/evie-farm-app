@@ -1,6 +1,10 @@
 [build]
-  command = "npm install -g pnpm && pnpm install --no-frozen-lockfile && pnpm run build"
+  command = "pnpm install --no-frozen-lockfile && pnpm run build"
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "22"
+  NODE_VERSION = "18"
+  NPM_FLAGS = "--version"
+
+[context.production]
+  environment = { PNPM_VERSION = "8" }
