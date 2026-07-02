@@ -81,7 +81,7 @@ function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
 }
 
 function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm: any) => void }) {
-  const [mode, setMode] = useState<'login'|'register'>('login');
+  const [mode, setMode] = useState<'login'|'register'|'reset'>('login');
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -94,6 +94,9 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
   const [pass2, setPass2] = useState('');
   const [farmName, setFarmName] = useState('');
   const [farmLoc, setFarmLoc] = useState('');
+  const [resetPhone, setResetPhone] = useState('');
+  const [newPass, setNewPass] = useState('');
+  const [newPass2, setNewPass2] = useState('');
 
   const makeSession = (userId: string, p: string, n: string, e: string, fn: string, fl: string) => {
     const farmId = `farm_${userId}`;
@@ -126,6 +129,27 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
     setTimeout(() => onAuthenticated(user, license, farm), 1500);
   };
 
+  const handleReset = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!resetPhone) { setError('Please enter your phone number'); return; }
+    if (!newPass || !newPass2) { setError('Please enter a new password'); return; }
+    if (newPass !== newPass2) { setError('Passwords do not match'); return; }
+    if (newPass.length < 6) { setError('Password must be at least 6 characters'); return; }
+    const stored = JSON.parse(localStorage.getItem('evie_user') || 'null');
+    if (stored && (stored.phone === resetPhone || stored.phone?.includes(resetPhone.replace(/\s+/g,'')))) {
+      stored.password = newPass;
+      localStorage.setItem('evie_user', JSON.stringify(stored));
+      setSuccess('Password reset successfully! You can now login with your new password.');
+      setTimeout(() => { setMode('login'); setSuccess(''); setError(''); setResetPhone(''); setNewPass(''); setNewPass2(''); }, 2500);
+    } else {
+      const userId = `user_${resetPhone.replace(/\s+/g,'')}`;
+      const { user, farm, license } = makeSession(userId, resetPhone, resetPhone, '', 'My Farm', 'Uganda');
+      setSuccess('Account recovered! You can now access the app.');
+      setTimeout(() => onAuthenticated(user, license, farm), 1500);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
@@ -134,16 +158,21 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
             <div className="p-3 bg-green-600 rounded-xl"><Sprout className="w-10 h-10 text-white" /></div>
             <div className="text-left"><h1 className="text-2xl font-bold text-gray-900">Evie Farm</h1><p className="text-sm text-gray-600">Digital Agribusiness</p></div>
           </div>
-          <p className="text-white text-lg font-semibold">{mode === 'login' ? 'Welcome back!' : 'Start Your Free Trial'}</p>
+          <p className="text-white text-lg font-semibold">
+            {mode === 'login' ? 'Welcome back!' : mode === 'register' ? 'Start Your Free Trial' : 'Reset Password'}
+          </p>
         </div>
         <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg">
-            <button onClick={() => setMode('login')} className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${mode==='login'?'bg-white text-green-600 shadow':'text-gray-600'}`}>Login</button>
-            <button onClick={() => setMode('register')} className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${mode==='register'?'bg-white text-green-600 shadow':'text-gray-600'}`}>Sign Up</button>
-          </div>
+          {mode !== 'reset' && (
+            <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg">
+              <button onClick={() => { setMode('login'); setError(''); setSuccess(''); }} className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${mode==='login'?'bg-white text-green-600 shadow':'text-gray-600'}`}>Login</button>
+              <button onClick={() => { setMode('register'); setError(''); setSuccess(''); }} className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${mode==='register'?'bg-white text-green-600 shadow':'text-gray-600'}`}>Sign Up</button>
+            </div>
+          )}
           {error && <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
           {success && <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 flex items-center gap-2 text-sm"><CheckCircle className="w-5 h-5" />{success}</div>}
-          {mode === 'login' ? (
+
+          {mode === 'login' && (
             <form onSubmit={handleLogin} className="space-y-4">
               <div><label className="block font-semibold text-gray-700 mb-2">Phone or Email</label>
                 <input type="text" placeholder="+256 700 123 456" value={loginPhone} onChange={e=>setLoginPhone(e.target.value)} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
@@ -153,8 +182,27 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
                   <button type="button" onClick={()=>setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">{showPass?<EyeOff className="w-5 h-5"/>:<Eye className="w-5 h-5"/>}</button>
                 </div></div>
               <button type="submit" className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold text-lg shadow-lg">Login</button>
+              <button type="button" onClick={() => { setMode('reset'); setError(''); setSuccess(''); }} className="w-full py-2 text-green-600 hover:text-green-700 font-semibold text-sm">Forgot Password? Reset here</button>
             </form>
-          ) : (
+          )}
+
+          {mode === 'reset' && (
+            <form onSubmit={handleReset} className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-blue-800 text-sm font-semibold">Enter your phone number and choose a new password to reset your access.</p>
+              </div>
+              <div><label className="block font-semibold text-gray-700 mb-2">Your Phone Number *</label>
+                <input type="tel" placeholder="+256 700 123 456" value={resetPhone} onChange={e=>setResetPhone(e.target.value)} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+              <div><label className="block font-semibold text-gray-700 mb-2">New Password *</label>
+                <input type="password" placeholder="At least 6 characters" value={newPass} onChange={e=>setNewPass(e.target.value)} required minLength={6} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+              <div><label className="block font-semibold text-gray-700 mb-2">Confirm New Password *</label>
+                <input type="password" placeholder="Re-enter new password" value={newPass2} onChange={e=>setNewPass2(e.target.value)} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
+              <button type="submit" className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold text-lg shadow-lg">Reset Password</button>
+              <button type="button" onClick={() => { setMode('login'); setError(''); setSuccess(''); }} className="w-full py-2 text-gray-600 hover:text-gray-700 font-semibold text-sm">Back to Login</button>
+            </form>
+          )}
+
+          {mode === 'register' && (
             <form onSubmit={handleRegister} className="space-y-4">
               <div><label className="block font-semibold text-gray-700 mb-2">Full Name *</label><input type="text" placeholder="John Doe" value={name} onChange={e=>setName(e.target.value)} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
               <div><label className="block font-semibold text-gray-700 mb-2">Phone (MTN/Airtel) *</label><input type="tel" placeholder="+256 700 123 456" value={phone} onChange={e=>setPhone(e.target.value)} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
