@@ -140,12 +140,12 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
     if (stored && (stored.phone === resetPhone || stored.phone?.includes(resetPhone.replace(/\s+/g,'')))) {
       stored.password = newPass;
       localStorage.setItem('evie_user', JSON.stringify(stored));
-      setSuccess('Password reset successfully! You can now login with your new password.');
+      setSuccess('Password reset successfully! You can now login.');
       setTimeout(() => { setMode('login'); setSuccess(''); setError(''); setResetPhone(''); setNewPass(''); setNewPass2(''); }, 2500);
     } else {
       const userId = `user_${resetPhone.replace(/\s+/g,'')}`;
       const { user, farm, license } = makeSession(userId, resetPhone, resetPhone, '', 'My Farm', 'Uganda');
-      setSuccess('Account recovered! You can now access the app.');
+      setSuccess('Account recovered! Redirecting...');
       setTimeout(() => onAuthenticated(user, license, farm), 1500);
     }
   };
@@ -158,9 +158,7 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
             <div className="p-3 bg-green-600 rounded-xl"><Sprout className="w-10 h-10 text-white" /></div>
             <div className="text-left"><h1 className="text-2xl font-bold text-gray-900">Evie Farm</h1><p className="text-sm text-gray-600">Digital Agribusiness</p></div>
           </div>
-          <p className="text-white text-lg font-semibold">
-            {mode === 'login' ? 'Welcome back!' : mode === 'register' ? 'Start Your Free Trial' : 'Reset Password'}
-          </p>
+          <p className="text-white text-lg font-semibold">{mode==='login'?'Welcome back!':mode==='register'?'Start Your Free Trial':'Reset Password'}</p>
         </div>
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           {mode !== 'reset' && (
@@ -171,7 +169,6 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
           )}
           {error && <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
           {success && <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 flex items-center gap-2 text-sm"><CheckCircle className="w-5 h-5" />{success}</div>}
-
           {mode === 'login' && (
             <form onSubmit={handleLogin} className="space-y-4">
               <div><label className="block font-semibold text-gray-700 mb-2">Phone or Email</label>
@@ -185,10 +182,9 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
               <button type="button" onClick={() => { setMode('reset'); setError(''); setSuccess(''); }} className="w-full py-2 text-green-600 hover:text-green-700 font-semibold text-sm">Forgot Password? Reset here</button>
             </form>
           )}
-
           {mode === 'reset' && (
             <form onSubmit={handleReset} className="space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-2">
                 <p className="text-blue-800 text-sm font-semibold">Enter your phone number and choose a new password to reset your access.</p>
               </div>
               <div><label className="block font-semibold text-gray-700 mb-2">Your Phone Number *</label>
@@ -201,7 +197,6 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
               <button type="button" onClick={() => { setMode('login'); setError(''); setSuccess(''); }} className="w-full py-2 text-gray-600 hover:text-gray-700 font-semibold text-sm">Back to Login</button>
             </form>
           )}
-
           {mode === 'register' && (
             <form onSubmit={handleRegister} className="space-y-4">
               <div><label className="block font-semibold text-gray-700 mb-2">Full Name *</label><input type="text" placeholder="John Doe" value={name} onChange={e=>setName(e.target.value)} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" /></div>
@@ -246,12 +241,12 @@ function PaymentBanner({ user }: { user: any }) {
   if (dismissed) return null;
   const expired = daysLeft === 0;
   return (
-    <div className={`${expired ? 'bg-red-700' : 'bg-green-700'} text-white px-4 py-3`}>
+    <div className={`${expired?'bg-red-700':'bg-green-700'} text-white px-4 py-3`}>
       <div className="max-w-5xl mx-auto flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <Clock className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold text-sm">{expired ? 'Trial ended — Activate Now!' : `${daysLeft} day${daysLeft===1?'':'s'} left in your free trial`}</p>
+            <p className="font-bold text-sm">{expired?'Trial ended — Activate Now!':`${daysLeft} day${daysLeft===1?'':'s'} left in your free trial`}</p>
             <p className="text-green-100 text-sm mt-0.5">Send UGX 200,000 via MTN/Airtel to: <strong>0782016339</strong> or <strong>0704296938</strong></p>
             <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="inline-block mt-2 px-4 py-1.5 bg-white text-green-700 rounded-lg font-bold text-sm hover:bg-green-50">💬 WhatsApp to Activate</a>
           </div>
@@ -262,14 +257,14 @@ function PaymentBanner({ user }: { user: any }) {
   );
 }
 
-function Dashboard() {
+function Dashboard({ onNavigate }: { onNavigate: (view: View) => void }) {
   const stats = [
-    { label: 'Total Crops', value: '7', icon: Sprout, color: 'bg-green-100 text-green-700', sub: '2 ready for harvest' },
-    { label: 'Livestock', value: '244', icon: Beef, color: 'bg-blue-100 text-blue-700', sub: '6 groups' },
-    { label: 'Monthly Income', value: 'UGX 1.0M', icon: TrendingUp, color: 'bg-emerald-100 text-emerald-700', sub: 'This month' },
-    { label: 'Monthly Expenses', value: 'UGX 515K', icon: TrendingDown, color: 'bg-red-100 text-red-700', sub: 'This month' },
-    { label: 'Net Profit', value: 'UGX 492K', icon: DollarSign, color: 'bg-yellow-100 text-yellow-700', sub: '48.9% margin' },
-    { label: 'Pending Tasks', value: '5', icon: AlertCircle, color: 'bg-orange-100 text-orange-700', sub: '3 overdue' },
+    { label: 'Total Crops', value: '7', icon: Sprout, color: 'bg-green-100 text-green-700', sub: '2 ready for harvest', view: 'crops' as View },
+    { label: 'Livestock', value: '244', icon: Beef, color: 'bg-blue-100 text-blue-700', sub: '6 groups', view: 'livestock' as View },
+    { label: 'Monthly Income', value: 'UGX 1.0M', icon: TrendingUp, color: 'bg-emerald-100 text-emerald-700', sub: 'This month', view: 'money' as View },
+    { label: 'Monthly Expenses', value: 'UGX 515K', icon: TrendingDown, color: 'bg-red-100 text-red-700', sub: 'This month', view: 'money' as View },
+    { label: 'Net Profit', value: 'UGX 492K', icon: DollarSign, color: 'bg-yellow-100 text-yellow-700', sub: '48.9% margin', view: 'money' as View },
+    { label: 'Pending Tasks', value: '5', icon: AlertCircle, color: 'bg-orange-100 text-orange-700', sub: '3 overdue', view: 'people' as View },
   ];
   const alerts = [
     { msg: 'Heavy rains expected — check drainage', level: 'high' },
@@ -279,15 +274,16 @@ function Dashboard() {
   ];
   return (
     <div className="space-y-6">
-      <div><h1 className="text-2xl font-bold text-gray-900">Farm Overview</h1><p className="text-gray-600">Welcome back! Here is what is happening on your farm today.</p></div>
+      <div><h1 className="text-2xl font-bold text-gray-900">Farm Overview</h1><p className="text-gray-600">Tap any card to view details.</p></div>
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {stats.map(s => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-200 p-5">
+          <button key={s.label} onClick={() => onNavigate(s.view)} className="bg-white rounded-xl border border-gray-200 p-5 text-left hover:shadow-md hover:border-green-300 transition-all active:scale-95">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${s.color}`}><s.icon className="w-5 h-5" /></div>
             <p className="text-2xl font-bold text-gray-900">{s.value}</p>
             <p className="font-semibold text-gray-700">{s.label}</p>
             <p className="text-sm text-gray-500">{s.sub}</p>
-          </div>
+            <p className="text-xs text-green-600 mt-2 font-semibold">Tap to view →</p>
+          </button>
         ))}
       </div>
       <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -304,12 +300,12 @@ function Dashboard() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2"><Heart className="w-5 h-5 text-pink-500" />Farm Health Score</h2>
         <div className="grid grid-cols-3 gap-4">
-          {[{label:'Crops',score:90,color:'bg-green-600'},{label:'Livestock',score:94,color:'bg-blue-600'},{label:'Overall',score:92,color:'bg-purple-600'}].map(h => (
-            <div key={h.label} className="text-center p-4 bg-gray-50 rounded-xl">
+          {[{label:'Crops',score:90,color:'bg-green-600',view:'crops' as View},{label:'Livestock',score:94,color:'bg-blue-600',view:'livestock' as View},{label:'Overall',score:92,color:'bg-purple-600',view:'dashboard' as View}].map(h => (
+            <button key={h.label} onClick={() => onNavigate(h.view)} className="text-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors active:scale-95">
               <p className="text-3xl font-bold text-gray-900">{h.score}%</p>
               <p className="font-semibold text-gray-700">{h.label}</p>
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2"><div className={`h-2 rounded-full ${h.color}`} style={{width:`${h.score}%`}} /></div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -456,8 +452,8 @@ function MoneyView() {
     setForm({ type: 'income', category: '', amount: '', date: new Date().toISOString().split('T')[0], notes: '' }); setShowForm(false);
   };
   const remove = (id: number) => { const u = transactions.filter((t: any) => t.id !== id); setTransactions(u); localStorage.setItem('evie_transactions', JSON.stringify(u)); };
-  const totalIncome = transactions.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + Number(t.amount), 0);
-  const totalExpenses = transactions.filter((t: any) => t.type === 'expense').reduce((s: number, t: any) => s + Number(t.amount), 0);
+  const totalIncome = transactions.filter((t: any) => t.type==='income').reduce((s: number, t: any) => s+Number(t.amount), 0);
+  const totalExpenses = transactions.filter((t: any) => t.type==='expense').reduce((s: number, t: any) => s+Number(t.amount), 0);
   const profit = totalIncome - totalExpenses;
   return (
     <div className="space-y-6">
@@ -525,8 +521,8 @@ function PeopleView() {
     setStaff(updated); localStorage.setItem('evie_staff', JSON.stringify(updated));
     setForm({ name: '', role: '', phone: '', salary: '' }); setShowForm(false);
   };
-  const toggleCheckIn = (id: number) => { const u = staff.map((s: any) => s.id === id ? { ...s, checkedIn: !s.checkedIn } : s); setStaff(u); localStorage.setItem('evie_staff', JSON.stringify(u)); };
-  const remove = (id: number) => { const u = staff.filter((s: any) => s.id !== id); setStaff(u); localStorage.setItem('evie_staff', JSON.stringify(u)); };
+  const toggleCheckIn = (id: number) => { const u = staff.map((s: any) => s.id===id?{...s,checkedIn:!s.checkedIn}:s); setStaff(u); localStorage.setItem('evie_staff', JSON.stringify(u)); };
+  const remove = (id: number) => { const u = staff.filter((s: any) => s.id!==id); setStaff(u); localStorage.setItem('evie_staff', JSON.stringify(u)); };
   const checkedIn = staff.filter((s: any) => s.checkedIn).length;
   return (
     <div className="space-y-6">
@@ -544,7 +540,7 @@ function PeopleView() {
             <div><label className="block font-semibold text-gray-700 mb-1">Monthly Salary (UGX)</label><input type="number" value={form.salary} onChange={e=>setForm({...form,salary:e.target.value})} placeholder="e.g., 200000" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" /></div>
           </div>
           <div className="flex gap-3 mt-4">
-            <button onClick={save} disabled={!form.name || !form.role} className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold disabled:opacity-50">Save</button>
+            <button onClick={save} disabled={!form.name||!form.role} className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold disabled:opacity-50">Save</button>
             <button onClick={() => setShowForm(false)} className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">Cancel</button>
           </div>
         </div>
@@ -560,9 +556,9 @@ function PeopleView() {
               <button onClick={() => remove(s.id)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
             </div>
             {s.phone && <p className="text-sm text-gray-600 mb-2">📱 {s.phone}</p>}
-            {s.salary > 0 && <p className="text-sm text-gray-600 mb-3">💰 UGX {Number(s.salary).toLocaleString()}/month</p>}
+            {s.salary>0 && <p className="text-sm text-gray-600 mb-3">💰 UGX {Number(s.salary).toLocaleString()}/month</p>}
             <button onClick={() => toggleCheckIn(s.id)} className={`w-full py-2 rounded-lg font-semibold text-sm transition-colors ${s.checkedIn?'bg-green-100 text-green-700 hover:bg-green-200':'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-              {s.checkedIn ? '✅ Checked In — Click to Check Out' : '⬜ Not Checked In — Click to Check In'}
+              {s.checkedIn?'✅ Checked In — Click to Check Out':'⬜ Not Checked In — Click to Check In'}
             </button>
           </div>
         ))}
@@ -578,18 +574,18 @@ function SettingsView({ user, farm }: { user: any; farm: any }) {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="font-bold text-lg text-gray-900 mb-4">Account Information</h2>
         <div className="space-y-3">
-          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Name</span><span className="font-semibold">{user?.fullName || 'Not set'}</span></div>
-          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Phone</span><span className="font-semibold">{user?.phone || 'Not set'}</span></div>
-          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Email</span><span className="font-semibold">{user?.email || 'Not set'}</span></div>
-          <div className="flex items-center justify-between py-3"><span className="text-gray-600">Member Since</span><span className="font-semibold">{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Not set'}</span></div>
+          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Name</span><span className="font-semibold">{user?.fullName||'Not set'}</span></div>
+          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Phone</span><span className="font-semibold">{user?.phone||'Not set'}</span></div>
+          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Email</span><span className="font-semibold">{user?.email||'Not set'}</span></div>
+          <div className="flex items-center justify-between py-3"><span className="text-gray-600">Member Since</span><span className="font-semibold">{user?.createdAt?new Date(user.createdAt).toLocaleDateString():'Not set'}</span></div>
         </div>
       </div>
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="font-bold text-lg text-gray-900 mb-4">Farm Information</h2>
         <div className="space-y-3">
-          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Farm Name</span><span className="font-semibold">{farm?.name || 'Not set'}</span></div>
-          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Location</span><span className="font-semibold">{farm?.location || 'Not set'}</span></div>
-          <div className="flex items-center justify-between py-3"><span className="text-gray-600">Size</span><span className="font-semibold">{farm?.size || 'Not set'}</span></div>
+          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Farm Name</span><span className="font-semibold">{farm?.name||'Not set'}</span></div>
+          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Location</span><span className="font-semibold">{farm?.location||'Not set'}</span></div>
+          <div className="flex items-center justify-between py-3"><span className="text-gray-600">Size</span><span className="font-semibold">{farm?.size||'Not set'}</span></div>
         </div>
       </div>
       <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6">
@@ -599,7 +595,7 @@ function SettingsView({ user, farm }: { user: any; farm: any }) {
           <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-yellow-600" /><div><p className="font-bold">MTN Mobile Money</p><p className="text-gray-600 font-semibold">0782016339</p></div></div>
           <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-red-600" /><div><p className="font-bold">Airtel Money</p><p className="text-gray-600 font-semibold">0704296938</p></div></div>
         </div>
-        <p className="text-sm text-green-700 mb-3">After payment, click the button below and send us your name and payment details for instant activation.</p>
+        <p className="text-sm text-green-700 mb-3">After payment, click the button below for instant activation.</p>
         <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center gap-2 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors">
           💬 WhatsApp Us to Activate Now
         </a>
@@ -673,13 +669,13 @@ export default function AppCommercial() {
 
   const renderView = () => {
     switch(currentView) {
-      case 'dashboard': return <Dashboard />;
+      case 'dashboard': return <Dashboard onNavigate={setCurrentView} />;
       case 'crops': return <CropsView />;
       case 'livestock': return <LivestockView />;
       case 'money': return <MoneyView />;
       case 'people': return <PeopleView />;
       case 'settings': return <SettingsView user={currentUser} farm={currentFarm} />;
-      default: return <Dashboard />;
+      default: return <Dashboard onNavigate={setCurrentView} />;
     }
   };
 
@@ -691,10 +687,10 @@ export default function AppCommercial() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-600 rounded-lg"><Sprout className="w-6 h-6 text-white" /></div>
-              <div><h1 className="font-semibold text-gray-900">Evie Digital Agribusiness</h1><p className="text-gray-600 text-sm">{currentFarm?.name || 'Farm Management'}</p></div>
+              <div><h1 className="font-semibold text-gray-900">Evie Digital Agribusiness</h1><p className="text-gray-600 text-sm">{currentFarm?.name||'Farm Management'}</p></div>
             </div>
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen?<X className="w-6 h-6"/>:<Menu className="w-6 h-6"/>}
             </button>
             {currentUser && (
               <div className="hidden lg:flex items-center gap-3">
