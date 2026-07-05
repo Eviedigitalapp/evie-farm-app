@@ -377,34 +377,58 @@ function CropsView() {
 }
 
 function LivestockView() {
+  const BIRD_TYPES = ['Layers', 'Broilers', 'Kuroilers', 'Local Chicken', 'Chicks', 'Ducks', 'Turkeys', 'Geese'];
+  const ANIMAL_TYPES = ['Cattle', 'Goats', 'Pigs', 'Sheep', 'Rabbits', 'Other'];
+  const AGE_GROUPS = ['Adults', 'Young Ones (Juveniles)', 'Newborns'];
+
   const [animals, setAnimals] = useState(() => JSON.parse(localStorage.getItem('evie_livestock') || JSON.stringify([
-    { id: 1, type: 'Chickens', count: 120, health: 'Good', notes: 'Laying hens' },
-    { id: 2, type: 'Goats', count: 35, health: 'Excellent', notes: 'Mixed breed' },
-    { id: 3, type: 'Pigs', count: 25, health: 'Excellent', notes: 'Growing for sale' },
-    { id: 4, type: 'Cattle', count: 6, health: 'Good', notes: 'Dairy cows' },
-    { id: 5, type: 'Ducks', count: 58, health: 'Good', notes: 'Free range' },
+    { id: 1, category: 'Birds', type: 'Layers', count: 80, youngOnes: 0, health: 'Good', notes: 'Egg production active' },
+    { id: 2, category: 'Birds', type: 'Broilers', count: 40, youngOnes: 0, health: 'Good', notes: 'Ready in 3 weeks' },
+    { id: 3, category: 'Birds', type: 'Kuroilers', count: 30, youngOnes: 10, health: 'Excellent', notes: 'Mixed flock' },
+    { id: 4, category: 'Animals', type: 'Goats', count: 25, youngOnes: 8, health: 'Excellent', notes: 'Including kids' },
+    { id: 5, category: 'Animals', type: 'Pigs', count: 15, youngOnes: 6, health: 'Good', notes: 'Piglets growing well' },
+    { id: 6, category: 'Animals', type: 'Cattle', count: 6, youngOnes: 2, health: 'Good', notes: 'Dairy cows + calves' },
   ])));
+
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ type: '', count: '', health: 'Good', notes: '' });
+  const [form, setForm] = useState({ category: 'Birds', type: 'Layers', count: '', youngOnes: '0', health: 'Good', notes: '' });
+  const [activeTab, setActiveTab] = useState<'Birds' | 'Animals'>('Birds');
+
   const save = () => {
-    const updated = [...animals, { ...form, id: Date.now(), count: Number(form.count) }];
+    const updated = [...animals, { ...form, id: Date.now(), count: Number(form.count), youngOnes: Number(form.youngOnes) }];
     setAnimals(updated); localStorage.setItem('evie_livestock', JSON.stringify(updated));
-    setForm({ type: '', count: '', health: 'Good', notes: '' }); setShowForm(false);
+    setForm({ category: 'Birds', type: 'Layers', count: '', youngOnes: '0', health: 'Good', notes: '' }); setShowForm(false);
   };
+
   const remove = (id: number) => { const u = animals.filter((a: any) => a.id !== id); setAnimals(u); localStorage.setItem('evie_livestock', JSON.stringify(u)); };
-  const total = animals.reduce((sum: number, a: any) => sum + Number(a.count), 0);
+
+  const birds = animals.filter((a: any) => a.category === 'Birds');
+  const animalList = animals.filter((a: any) => a.category === 'Animals');
+  const totalBirds = birds.reduce((s: number, a: any) => s + Number(a.count) + Number(a.youngOnes || 0), 0);
+  const totalAnimals = animalList.reduce((s: number, a: any) => s + Number(a.count) + Number(a.youngOnes || 0), 0);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-gray-900">Livestock</h1><p className="text-gray-600">{total} animals in {animals.length} groups</p></div>
-        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"><Plus className="w-5 h-5" />Add Animal</button>
+        <div><h1 className="text-2xl font-bold text-gray-900">Livestock</h1><p className="text-gray-600">{totalBirds} birds · {totalAnimals} animals</p></div>
+        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"><Plus className="w-5 h-5" />Add</button>
       </div>
+
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="font-bold text-lg mb-4">Add Livestock</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className="block font-semibold text-gray-700 mb-1">Animal Type *</label><input type="text" value={form.type} onChange={e=>setForm({...form,type:e.target.value})} placeholder="e.g., Goats" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
-            <div><label className="block font-semibold text-gray-700 mb-1">Count *</label><input type="number" value={form.count} onChange={e=>setForm({...form,count:e.target.value})} placeholder="e.g., 20" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
+            <div><label className="block font-semibold text-gray-700 mb-1">Category *</label>
+              <select value={form.category} onChange={e=>setForm({...form, category:e.target.value, type: e.target.value==='Birds'?'Layers':'Cattle'})} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="Birds">Birds (Poultry)</option>
+                <option value="Animals">Animals</option>
+              </select></div>
+            <div><label className="block font-semibold text-gray-700 mb-1">Type *</label>
+              <select value={form.type} onChange={e=>setForm({...form,type:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {(form.category==='Birds'?BIRD_TYPES:ANIMAL_TYPES).map(t => <option key={t}>{t}</option>)}
+              </select></div>
+            <div><label className="block font-semibold text-gray-700 mb-1">Adults Count *</label><input type="number" value={form.count} onChange={e=>setForm({...form,count:e.target.value})} placeholder="e.g., 50" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
+            <div><label className="block font-semibold text-gray-700 mb-1">Young Ones / Chicks</label><input type="number" value={form.youngOnes} onChange={e=>setForm({...form,youngOnes:e.target.value})} placeholder="e.g., 10" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
             <div><label className="block font-semibold text-gray-700 mb-1">Health Status</label>
               <select value={form.health} onChange={e=>setForm({...form,health:e.target.value})} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 {['Excellent','Good','Fair','Poor'].map(s => <option key={s}>{s}</option>)}
@@ -417,20 +441,74 @@ function LivestockView() {
           </div>
         </div>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {animals.map((a: any) => (
-          <div key={a.id} className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-start justify-between mb-3">
-              <div><h3 className="font-bold text-gray-900 text-lg">{a.type}</h3><p className="text-3xl font-bold text-blue-600">{a.count} <span className="text-base text-gray-500 font-normal">animals</span></p></div>
-              <div className="flex items-center gap-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${a.health==='Excellent'?'bg-green-100 text-green-700':a.health==='Good'?'bg-blue-100 text-blue-700':a.health==='Fair'?'bg-yellow-100 text-yellow-700':'bg-red-100 text-red-700'}`}>{a.health}</span>
-                <button onClick={() => remove(a.id)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            </div>
-            {a.notes && <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2">{a.notes}</p>}
-          </div>
-        ))}
+
+      {/* Tabs */}
+      <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
+        <button onClick={() => setActiveTab('Birds')} className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${activeTab==='Birds'?'bg-white text-blue-600 shadow':'text-gray-600'}`}>
+          🐔 Birds ({totalBirds})
+        </button>
+        <button onClick={() => setActiveTab('Animals')} className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${activeTab==='Animals'?'bg-white text-blue-600 shadow':'text-gray-600'}`}>
+          🐄 Animals ({totalAnimals})
+        </button>
       </div>
+
+      {/* Birds Section */}
+      {activeTab === 'Birds' && (
+        <div className="space-y-4">
+          <h2 className="font-bold text-gray-700 text-lg">Poultry / Birds</h2>
+          {birds.length === 0 && <div className="bg-gray-50 rounded-xl p-8 text-center text-gray-500">No birds added yet. Click "Add" to add poultry.</div>}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {birds.map((a: any) => (
+              <div key={a.id} className="bg-white rounded-xl border border-gray-200 p-5">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-lg">🐔 {a.type}</h3>
+                    <div className="flex gap-4 mt-1">
+                      <div><p className="text-sm text-gray-500">Adults</p><p className="text-2xl font-bold text-blue-600">{a.count}</p></div>
+                      {Number(a.youngOnes) > 0 && <div><p className="text-sm text-gray-500">Chicks/Young</p><p className="text-2xl font-bold text-orange-500">{a.youngOnes}</p></div>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${a.health==='Excellent'?'bg-green-100 text-green-700':a.health==='Good'?'bg-blue-100 text-blue-700':a.health==='Fair'?'bg-yellow-100 text-yellow-700':'bg-red-100 text-red-700'}`}>{a.health}</span>
+                    <button onClick={() => remove(a.id)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 mb-1">Total: <strong>{Number(a.count) + Number(a.youngOnes || 0)}</strong> birds</p>
+                {a.notes && <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2">{a.notes}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Animals Section */}
+      {activeTab === 'Animals' && (
+        <div className="space-y-4">
+          <h2 className="font-bold text-gray-700 text-lg">Animals</h2>
+          {animalList.length === 0 && <div className="bg-gray-50 rounded-xl p-8 text-center text-gray-500">No animals added yet. Click "Add" to add animals.</div>}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {animalList.map((a: any) => (
+              <div key={a.id} className="bg-white rounded-xl border border-gray-200 p-5">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-lg">🐄 {a.type}</h3>
+                    <div className="flex gap-4 mt-1">
+                      <div><p className="text-sm text-gray-500">Adults</p><p className="text-2xl font-bold text-blue-600">{a.count}</p></div>
+                      {Number(a.youngOnes) > 0 && <div><p className="text-sm text-gray-500">Young Ones</p><p className="text-2xl font-bold text-orange-500">{a.youngOnes}</p></div>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${a.health==='Excellent'?'bg-green-100 text-green-700':a.health==='Good'?'bg-blue-100 text-blue-700':a.health==='Fair'?'bg-yellow-100 text-yellow-700':'bg-red-100 text-red-700'}`}>{a.health}</span>
+                    <button onClick={() => remove(a.id)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 mb-1">Total: <strong>{Number(a.count) + Number(a.youngOnes || 0)}</strong> animals</p>
+                {a.notes && <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2">{a.notes}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
