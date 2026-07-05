@@ -377,9 +377,8 @@ function CropsView() {
 }
 
 function LivestockView() {
-  const BIRD_TYPES = ['Layers', 'Broilers', 'Kuroilers', 'Local Chicken', 'Chicks', 'Ducks', 'Turkeys', 'Geese'];
-  const ANIMAL_TYPES = ['Cattle', 'Goats', 'Pigs', 'Sheep', 'Rabbits', 'Other'];
-  const AGE_GROUPS = ['Adults', 'Young Ones (Juveniles)', 'Newborns'];
+  const BIRD_TYPES = ['Layers', 'Broilers', 'Kuroilers', 'Local Chicken', 'Chicks', 'Ducks', 'Turkeys', 'Geese', 'Quails', 'Guinea Fowls', 'Pigeons', 'Other Birds'];
+  const ANIMAL_TYPES = ['Cattle', 'Goats', 'Pigs', 'Sheep', 'Rabbits', 'Dogs', 'Other Animals'];
 
   const [animals, setAnimals] = useState(() => JSON.parse(localStorage.getItem('evie_livestock') || JSON.stringify([
     { id: 1, category: 'Birds', type: 'Layers', count: 80, youngOnes: 0, health: 'Good', notes: 'Egg production active' },
@@ -413,13 +412,12 @@ function LivestockView() {
         <div><h1 className="text-2xl font-bold text-gray-900">Livestock</h1><p className="text-gray-600">{totalBirds} birds · {totalAnimals} animals</p></div>
         <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"><Plus className="w-5 h-5" />Add</button>
       </div>
-
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="font-bold text-lg mb-4">Add Livestock</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label className="block font-semibold text-gray-700 mb-1">Category *</label>
-              <select value={form.category} onChange={e=>setForm({...form, category:e.target.value, type: e.target.value==='Birds'?'Layers':'Cattle'})} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select value={form.category} onChange={e=>setForm({...form,category:e.target.value,type:e.target.value==='Birds'?'Layers':'Cattle'})} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="Birds">Birds (Poultry)</option>
                 <option value="Animals">Animals</option>
               </select></div>
@@ -436,23 +434,15 @@ function LivestockView() {
             <div><label className="block font-semibold text-gray-700 mb-1">Notes</label><input type="text" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Any notes..." className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
           </div>
           <div className="flex gap-3 mt-4">
-            <button onClick={save} disabled={!form.type || !form.count} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold disabled:opacity-50">Save</button>
+            <button onClick={save} disabled={!form.type||!form.count} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold disabled:opacity-50">Save</button>
             <button onClick={() => setShowForm(false)} className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">Cancel</button>
           </div>
         </div>
       )}
-
-      {/* Tabs */}
       <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
-        <button onClick={() => setActiveTab('Birds')} className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${activeTab==='Birds'?'bg-white text-blue-600 shadow':'text-gray-600'}`}>
-          🐔 Birds ({totalBirds})
-        </button>
-        <button onClick={() => setActiveTab('Animals')} className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${activeTab==='Animals'?'bg-white text-blue-600 shadow':'text-gray-600'}`}>
-          🐄 Animals ({totalAnimals})
-        </button>
+        <button onClick={() => setActiveTab('Birds')} className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${activeTab==='Birds'?'bg-white text-blue-600 shadow':'text-gray-600'}`}>🐔 Birds ({totalBirds})</button>
+        <button onClick={() => setActiveTab('Animals')} className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${activeTab==='Animals'?'bg-white text-blue-600 shadow':'text-gray-600'}`}>🐄 Animals ({totalAnimals})</button>
       </div>
-
-      {/* Birds Section */}
       {activeTab === 'Birds' && (
         <div className="space-y-4">
           <h2 className="font-bold text-gray-700 text-lg">Poultry / Birds</h2>
@@ -465,7 +455,7 @@ function LivestockView() {
                     <h3 className="font-bold text-gray-900 text-lg">🐔 {a.type}</h3>
                     <div className="flex gap-4 mt-1">
                       <div><p className="text-sm text-gray-500">Adults</p><p className="text-2xl font-bold text-blue-600">{a.count}</p></div>
-                      {Number(a.youngOnes) > 0 && <div><p className="text-sm text-gray-500">Chicks/Young</p><p className="text-2xl font-bold text-orange-500">{a.youngOnes}</p></div>}
+                      {Number(a.youngOnes)>0 && <div><p className="text-sm text-gray-500">Chicks/Young</p><p className="text-2xl font-bold text-orange-500">{a.youngOnes}</p></div>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -473,15 +463,13 @@ function LivestockView() {
                     <button onClick={() => remove(a.id)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
-                <p className="text-sm text-gray-500 mb-1">Total: <strong>{Number(a.count) + Number(a.youngOnes || 0)}</strong> birds</p>
+                <p className="text-sm text-gray-500 mb-1">Total: <strong>{Number(a.count)+Number(a.youngOnes||0)}</strong> birds</p>
                 {a.notes && <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2">{a.notes}</p>}
               </div>
             ))}
           </div>
         </div>
       )}
-
-      {/* Animals Section */}
       {activeTab === 'Animals' && (
         <div className="space-y-4">
           <h2 className="font-bold text-gray-700 text-lg">Animals</h2>
@@ -494,7 +482,7 @@ function LivestockView() {
                     <h3 className="font-bold text-gray-900 text-lg">🐄 {a.type}</h3>
                     <div className="flex gap-4 mt-1">
                       <div><p className="text-sm text-gray-500">Adults</p><p className="text-2xl font-bold text-blue-600">{a.count}</p></div>
-                      {Number(a.youngOnes) > 0 && <div><p className="text-sm text-gray-500">Young Ones</p><p className="text-2xl font-bold text-orange-500">{a.youngOnes}</p></div>}
+                      {Number(a.youngOnes)>0 && <div><p className="text-sm text-gray-500">Young Ones</p><p className="text-2xl font-bold text-orange-500">{a.youngOnes}</p></div>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -502,7 +490,7 @@ function LivestockView() {
                     <button onClick={() => remove(a.id)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
-                <p className="text-sm text-gray-500 mb-1">Total: <strong>{Number(a.count) + Number(a.youngOnes || 0)}</strong> animals</p>
+                <p className="text-sm text-gray-500 mb-1">Total: <strong>{Number(a.count)+Number(a.youngOnes||0)}</strong> animals</p>
                 {a.notes && <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2">{a.notes}</p>}
               </div>
             ))}
@@ -558,7 +546,7 @@ function MoneyView() {
             <div className="md:col-span-2"><label className="block font-semibold text-gray-700 mb-1">Notes</label><input type="text" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Any notes..." className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500" /></div>
           </div>
           <div className="flex gap-3 mt-4">
-            <button onClick={save} disabled={!form.category || !form.amount} className="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-semibold disabled:opacity-50">Save</button>
+            <button onClick={save} disabled={!form.category||!form.amount} className="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-semibold disabled:opacity-50">Save</button>
             <button onClick={() => setShowForm(false)} className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">Cancel</button>
           </div>
         </div>
@@ -674,9 +662,7 @@ function SettingsView({ user, farm }: { user: any; farm: any }) {
           <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-red-600" /><div><p className="font-bold">Airtel Money</p><p className="text-gray-600 font-semibold">0704296938</p></div></div>
         </div>
         <p className="text-sm text-green-700 mb-3">After payment, click the button below for instant activation.</p>
-        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center gap-2 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors">
-          💬 WhatsApp Us to Activate Now
-        </a>
+        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center gap-2 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors">💬 WhatsApp Us to Activate Now</a>
       </div>
     </div>
   );
@@ -718,19 +704,11 @@ export default function AppCommercial() {
     check();
   }, []);
 
-  const handleAuthenticated = (user: any, _sub: any, farm: any) => {
-    setCurrentUser(user);
-    setCurrentFarm(farm);
-    setAppMode('app');
-  };
-
+  const handleAuthenticated = (user: any, _sub: any, farm: any) => { setCurrentUser(user); setCurrentFarm(farm); setAppMode('app'); };
   const handleLogout = async () => {
     try { await signOut(); } catch {}
-    localStorage.removeItem('evie_user');
-    localStorage.removeItem('evie_farm');
-    setCurrentUser(null);
-    setCurrentFarm(null);
-    setAppMode('landing');
+    localStorage.removeItem('evie_user'); localStorage.removeItem('evie_farm');
+    setCurrentUser(null); setCurrentFarm(null); setAppMode('landing');
   };
 
   if (appMode === 'landing') return <LandingPage onGetStarted={() => setAppMode('auth')} />;
@@ -792,8 +770,7 @@ export default function AppCommercial() {
               const Icon = item.icon;
               const isActive = currentView === item.id;
               return (
-                <button key={item.id} onClick={() => setCurrentView(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive?'bg-green-50 text-green-700 font-semibold':'text-gray-700 hover:bg-gray-50'}`}>
+                <button key={item.id} onClick={() => setCurrentView(item.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive?'bg-green-50 text-green-700 font-semibold':'text-gray-700 hover:bg-gray-50'}`}>
                   <Icon className="w-5 h-5" />{item.label}
                 </button>
               );
@@ -819,8 +796,7 @@ export default function AppCommercial() {
                 const Icon = item.icon;
                 const isActive = currentView === item.id;
                 return (
-                  <button key={item.id} onClick={() => { setCurrentView(item.id); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive?'bg-green-50 text-green-700 font-semibold':'text-gray-700 hover:bg-gray-50'}`}>
+                  <button key={item.id} onClick={() => { setCurrentView(item.id); setMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive?'bg-green-50 text-green-700 font-semibold':'text-gray-700 hover:bg-gray-50'}`}>
                     <Icon className="w-5 h-5" />{item.label}
                   </button>
                 );
