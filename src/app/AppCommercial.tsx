@@ -715,15 +715,17 @@ export default function AppCommercial() {
   if (appMode === 'auth') return <Auth onAuthenticated={handleAuthenticated} />;
 
   const navigation = [
-    { id: 'dashboard' as View, label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'crops' as View, label: 'Crops', icon: Sprout },
-    { id: 'livestock' as View, label: 'Livestock', icon: Beef },
-    { id: 'money' as View, label: 'Money', icon: DollarSign },
-    { id: 'people' as View, label: 'People', icon: Users },
-   { id: 'admin' as View, label: 'Owner Activation', icon: Shield },
-    { id: 'settings' as View, label: 'Settings', icon: SettingsIcon },
-  ];
-
+    const navigation = [
+  { id: 'dashboard' as View, label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'crops' as View, label: 'Crops', icon: Sprout },
+  { id: 'livestock' as View, label: 'Livestock', icon: Beef },
+  { id: 'money' as View, label: 'Money', icon: DollarSign },
+  { id: 'people' as View, label: 'People', icon: Users },
+  ...(currentUser?.email === OWNER_ADMIN_EMAIL
+    ? [{ id: 'admin' as View, label: 'Owner Activation', icon: Shield }]
+    : []),
+  { id: 'settings' as View, label: 'Settings', icon: SettingsIcon },
+];
   const renderView = () => {
     switch(currentView) {
       case 'dashboard': return <Dashboard onNavigate={setCurrentView} />;
@@ -731,7 +733,10 @@ export default function AppCommercial() {
       case 'livestock': return <LivestockView />;
       case 'money': return <MoneyView />;
       case 'people': return <PeopleView />;
-      case 'admin': return <AdminActivation />;
+      case 'admin':
+  return currentUser?.email === OWNER_ADMIN_EMAIL
+    ? <AdminActivation />
+    : <Dashboard onNavigate={setCurrentView} />;
       case 'settings': return <SettingsView user={currentUser} farm={currentFarm} />;
       default: return <Dashboard onNavigate={setCurrentView} />;
     }
