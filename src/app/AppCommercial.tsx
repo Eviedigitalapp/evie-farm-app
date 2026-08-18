@@ -113,7 +113,40 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
     if (!loginPhone || !loginPass) { setError('Please fill in all fields'); return; }
     const stored = JSON.parse(localStorage.getItem('evie_user') || 'null');
     const userId = stored?.id || `user_${loginPhone.replace(/\s+/g,'')}`;
-    const { user, farm, license } = makeSession(userId, stored?.phone || loginPhone, stored?.fullName || loginPhone, stored?.email || '', stored?.farmName || 'My Farm', 'Uganda');
+const storedFarm = JSON.parse(localStorage.getItem('evie_farm') || 'null');
+
+const user = stored || {
+  id: userId,
+  phone: loginPhone,
+  fullName: loginPhone,
+  email: '',
+  createdAt: new Date().toISOString()
+};
+
+const farm = storedFarm || {
+  id: `farm_${userId}`,
+  name: 'My Farm',
+  ownerId: userId,
+  location: 'Uganda',
+  size: 'Not specified',
+  createdAt: new Date().toISOString()
+};
+
+const license = {
+  id: `lic_${userId}`,
+  userId,
+  status: 'trial',
+  amount: 200000,
+  planAmount: 200000,
+  currency: 'UGX',
+  trialEndDate: new Date(
+    new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000
+  ).toISOString(),
+  currentPeriodEnd: new Date(
+    new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000
+  ).toISOString(),
+  createdAt: user.createdAt
+};
     setSuccess('Login successful!');
     setTimeout(() => onAuthenticated(user, license, farm), 500);
   };
