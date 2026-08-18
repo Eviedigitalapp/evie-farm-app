@@ -693,8 +693,8 @@ function SettingsView({ user, farm }: { user: any; farm: any }) {
         </div>
       </div>
       <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6">
-        <h2 className="font-bold text-lg text-green-900 mb-2">Activate Lifetime License</h2>
-        <p className="text-green-800 mb-4">Send UGX 200,000 via MTN or Airtel Money to activate your lifetime license.</p>
+        <h2 className="font-bold text-lg text-green-900 mb-2">Activate 2-Year Access</h2>
+<p className="text-green-800 mb-4">Send UGX 200,000 via MTN or Airtel Money to activate 2 years of full access. Renewable every 2 years.</p>
         <div className="space-y-2 mb-4">
           <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-yellow-600" /><div><p className="font-bold">MTN Mobile Money</p><p className="text-gray-600 font-semibold">0782016339</p></div></div>
           <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-red-600" /><div><p className="font-bold">Airtel Money</p><p className="text-gray-600 font-semibold">0704296938</p></div></div>
