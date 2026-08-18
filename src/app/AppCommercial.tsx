@@ -37,7 +37,7 @@ function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">Manage Your Farm<br />Like a Business</h1>
           <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">Track crops, livestock, finances, and workers — all in one app. Built for African farmers in Uganda.</p>
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-auto mb-8">
-            <p className="text-gray-500 mb-1">One-time payment after 7-day free trial</p>
+            UGX 200,000 for 2 years after the 7-day free trial
             <div className="flex items-baseline justify-center gap-2 mb-1">
               <span className="text-5xl font-bold text-green-700">UGX 200,000</span>
             </div>
