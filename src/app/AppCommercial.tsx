@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LayoutDashboard, Sprout, Beef, DollarSign, Menu, X, Users, Settings as SettingsIcon, LogOut, Sun, Clock, CheckCircle, Star, Wifi, Shield, BarChart3, Smartphone, Download, Eye, EyeOff, Plus, Trash2, TrendingUp, TrendingDown, AlertCircle, Heart } from 'lucide-react';
 import { getSession, signOut } from '../utils/supabaseClient';import { AdminActivation } from './components/AdminActivation';
- 
+ import { PaymentPage } from './components/PaymentPage';
 type View = 'dashboard' | 'crops' | 'livestock' | 'money' | 'people' | 'settings' | 'admin';
 type AppMode = 'landing' | 'auth' | 'app';
 
