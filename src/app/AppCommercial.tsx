@@ -720,6 +720,7 @@ export default function AppCommercial() {
     { id: 'livestock' as View, label: 'Livestock', icon: Beef },
     { id: 'money' as View, label: 'Money', icon: DollarSign },
     { id: 'people' as View, label: 'People', icon: Users },
+   { id: 'admin' as View, label: 'Owner Activation', icon: Shield },
     { id: 'settings' as View, label: 'Settings', icon: SettingsIcon },
   ];
 
