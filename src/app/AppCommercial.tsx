@@ -746,7 +746,91 @@ export default function AppCommercial() {
 
   if (appMode === 'landing') return <LandingPage onGetStarted={() => setAppMode('auth')} />;
   if (appMode === 'auth') return <Auth onAuthenticated={handleAuthenticated} />;
+const licenses = JSON.parse(localStorage.getItem('evie_licenses') || '[]');
 
+const activeLicense = licenses.find(
+  (license: any) =>
+    license.userId === currentUser?.id &&
+    license.status === 'active' &&
+    license.accessEndDate &&
+    new Date(license.accessEndDate).getTime() > Date.now()
+);
+
+const trialEnd = currentUser?.createdAt
+  ? new Date(
+      new Date(currentUser.createdAt).getTime() +
+        7 * 24 * 60 * 60 * 1000
+    )
+  : null;
+
+const trialExpired =
+  trialEnd &&
+  trialEnd.getTime() <= Date.now();
+
+const isOwnerAdmin =
+  currentUser?.email?.toLowerCase() === OWNER_ADMIN_EMAIL.toLowerCase();
+
+if (trialExpired && !activeLicense && !isOwnerAdmin) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 p-4 flex items-center justify-center">
+      <div className="max-w-xl w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+        <Clock className="w-16 h-16 text-red-600 mx-auto mb-5" />
+
+        <h1 className="text-3xl font-bold text-gray-900 mb-3">
+          Your 7-Day Trial Has Ended
+        </h1>
+
+        <p className="text-gray-600 text-lg mb-6">
+          Continue using EVIE Digital Agribusiness with 2 years of full access.
+        </p>
+
+        <div className="bg-green-50 border-2 border-green-200 rounded-xl p-5 mb-6">
+          <p className="text-sm text-green-700 mb-1">
+            2-Year Access
+          </p>
+
+          <p className="text-4xl font-bold text-green-700">
+            UGX 200,000
+          </p>
+
+          <p className="text-green-700 mt-2">
+            Renewable every 2 years
+          </p>
+        </div>
+
+        <div className="text-left bg-gray-50 rounded-xl p-5 mb-6">
+          <p className="font-bold text-gray-900 mb-3">
+            Pay by Mobile Money
+          </p>
+
+          <p className="mb-2">
+            <strong>MTN:</strong> 0782016339
+          </p>
+
+          <p>
+            <strong>Airtel:</strong> 0704296938
+          </p>
+        </div>
+
+        <a
+          href={WHATSAPP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full flex items-center justify-center py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700"
+        >
+          💬 Submit Payment for Activation
+        </a>
+
+        <button
+          onClick={handleLogout}
+          className="w-full mt-3 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+}
   const navigation = [
     const navigation = [
   { id: 'dashboard' as View, label: 'Dashboard', icon: LayoutDashboard },
