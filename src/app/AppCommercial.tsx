@@ -281,7 +281,12 @@ function PaymentBanner({ user }: { user: any }) {
           <div>
             <p className="font-bold text-sm">{expired?'Trial ended — Activate Now!':`${daysLeft} day${daysLeft===1?'':'s'} left in your free trial`}</p>
             <p className="text-green-100 text-sm mt-0.5">Send UGX 200,000 via MTN/Airtel to: <strong>0782016339</strong> or <strong>0704296938</strong></p>
-            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="inline-block mt-2 px-4 py-1.5 bg-white text-green-700 rounded-lg font-bold text-sm hover:bg-green-50">💬 WhatsApp to Activate</a>
+           <button
+  onClick={() => setShowPayment(true)}
+  className="w-full flex items-center justify-center py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700"
+>
+  Continue to Payment
+</button>
           </div>
         </div>
         {!expired && <button onClick={() => setDismissed(true)} className="opacity-70 hover:opacity-100 flex-shrink-0"><X className="w-5 h-5" /></button>}
