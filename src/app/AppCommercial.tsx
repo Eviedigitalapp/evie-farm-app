@@ -769,7 +769,30 @@ const trialExpired =
 
 const isOwnerAdmin =
   currentUser?.email?.toLowerCase() === OWNER_ADMIN_EMAIL.toLowerCase();
+if (showPayment && currentUser) {
+  const paymentSubscription = {
+    id: `lic_${currentUser.id}`,
+    userId: currentUser.id,
+    status: 'expired',
+    amount: 200000,
+    planAmount: 200000,
+    currency: 'UGX',
+    trialEndDate: trialEnd?.toISOString(),
+    currentPeriodEnd: trialEnd?.toISOString(),
+    createdAt: currentUser.createdAt
+  };
 
+  return (
+    <PaymentPage
+      subscription={paymentSubscription as any}
+      userPhone={currentUser.phone || ''}
+      userEmail={currentUser.email || ''}
+      userFullName={currentUser.fullName || ''}
+      onBack={() => setShowPayment(false)}
+      onSuccess={() => setShowPayment(false)}
+    />
+  );
+}
 if (trialExpired && !activeLicense && !isOwnerAdmin) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 p-4 flex items-center justify-center">
