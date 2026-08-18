@@ -708,7 +708,7 @@ export default function AppCommercial() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
-
+const [showPayment, setShowPayment] = useState(false);
   useEffect(() => {
     if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
