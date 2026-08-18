@@ -731,6 +731,7 @@ export default function AppCommercial() {
       case 'livestock': return <LivestockView />;
       case 'money': return <MoneyView />;
       case 'people': return <PeopleView />;
+      case 'admin': return <AdminActivation />;
       case 'settings': return <SettingsView user={currentUser} farm={currentFarm} />;
       default: return <Dashboard onNavigate={setCurrentView} />;
     }
