@@ -868,9 +868,9 @@ if (trialExpired && !activeLicense && !isOwnerAdmin) {
   { id: 'livestock' as View, label: 'Livestock', icon: Beef },
   { id: 'money' as View, label: 'Money', icon: DollarSign },
   { id: 'people' as View, label: 'People', icon: Users },
-  ...(currentUser?.email === OWNER_ADMIN_EMAIL
-    ? [{ id: 'admin' as View, label: 'Owner Activation', icon: Shield }]
-    : []),
+  ...(isOwnerAdmin
+  ? [{ id: 'admin' as View, label: 'Owner Activation', icon: Shield }]
+  : []),
   { id: 'settings' as View, label: 'Settings', icon: SettingsIcon },
 ];
   const renderView = () => {
@@ -881,7 +881,8 @@ if (trialExpired && !activeLicense && !isOwnerAdmin) {
       case 'money': return <MoneyView />;
       case 'people': return <PeopleView />;
       case 'admin':
-  return currentUser?.email === OWNER_ADMIN_EMAIL
+case 'admin':
+  return isOwnerAdmin
     ? <AdminActivation />
     : <Dashboard onNavigate={setCurrentView} />;
       case 'settings': return <SettingsView user={currentUser} farm={currentFarm} />;
