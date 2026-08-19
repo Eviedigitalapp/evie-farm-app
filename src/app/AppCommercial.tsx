@@ -862,33 +862,39 @@ if (trialExpired && !activeLicense && !isOwnerAdmin) {
   );
 }
   const navigation = [
-    const navigation = [
   { id: 'dashboard' as View, label: 'Dashboard', icon: LayoutDashboard },
   { id: 'crops' as View, label: 'Crops', icon: Sprout },
   { id: 'livestock' as View, label: 'Livestock', icon: Beef },
   { id: 'money' as View, label: 'Money', icon: DollarSign },
   { id: 'people' as View, label: 'People', icon: Users },
   ...(isOwnerAdmin
-  ? [{ id: 'admin' as View, label: 'Owner Activation', icon: Shield }]
-  : []),
+    ? [{ id: 'admin' as View, label: 'Owner Activation', icon: Shield }]
+    : []),
   { id: 'settings' as View, label: 'Settings', icon: SettingsIcon },
 ];
-  const renderView = () => {
-    switch(currentView) {
-      case 'dashboard': return <Dashboard onNavigate={setCurrentView} />;
-      case 'crops': return <CropsView />;
-      case 'livestock': return <LivestockView />;
-      case 'money': return <MoneyView />;
-      case 'people': return <PeopleView />;
-      case 'admin':
-case 'admin':
-  return isOwnerAdmin
-    ? <AdminActivation />
-    : <Dashboard onNavigate={setCurrentView} />;
-      case 'settings': return <SettingsView user={currentUser} farm={currentFarm} />;
-      default: return <Dashboard onNavigate={setCurrentView} />;
-    }
-  };
+
+const renderView = () => {
+  switch(currentView) {
+    case 'dashboard':
+      return <Dashboard onNavigate={setCurrentView} />;
+    case 'crops':
+      return <CropsView />;
+    case 'livestock':
+      return <LivestockView />;
+    case 'money':
+      return <MoneyView />;
+    case 'people':
+      return <PeopleView />;
+    case 'admin':
+      return isOwnerAdmin
+        ? <AdminActivation />
+        : <Dashboard onNavigate={setCurrentView} />;
+    case 'settings':
+      return <SettingsView user={currentUser} farm={currentFarm} />;
+    default:
+      return <Dashboard onNavigate={setCurrentView} />;
+  }
+};
 
   return (
     <div className={`min-h-screen bg-gray-50 ${highContrast?'high-contrast':''}`}>
