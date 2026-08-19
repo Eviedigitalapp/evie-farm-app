@@ -73,7 +73,7 @@ function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
         </div>
         <div className="text-center">
           <button onClick={onGetStarted} className="px-12 py-5 bg-white text-green-700 rounded-full font-bold text-xl hover:bg-gray-100 transition-all shadow-2xl">Start Free Trial Now</button>
-          <p className="text-green-200 mt-4">7 days free. Then UGX 200,000 once. No monthly fees. Ever.</p>
+         7 days free. Then UGX 200,000 for 2 years. Renewable every 2 years.
         </div>
       </div>
     </div>
