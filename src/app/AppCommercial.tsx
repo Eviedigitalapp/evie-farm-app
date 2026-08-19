@@ -775,9 +775,7 @@ const trialExpired =
   trialEnd.getTime() <= Date.now();
 
 const isOwnerAdmin =
-  currentUser?.email?.toLowerCase().trim() === OWNER_ADMIN_EMAIL.toLowerCase() ||
-  currentUser?.phone?.replace(/\s+/g, '') === '+256782016339' ||
-  currentUser?.phone?.replace(/\s+/g, '') === '0782016339';
+  currentUser?.email?.toLowerCase().trim() === OWNER_ADMIN_EMAIL.toLowerCase();
 if (showPayment && currentUser) {
   const paymentSubscription = {
     id: `lic_${currentUser.id}`,
