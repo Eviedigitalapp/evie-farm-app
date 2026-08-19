@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { LayoutDashboard, Sprout, Beef, DollarSign, Menu, X, Users, Settings as SettingsIcon, LogOut, Sun, Clock, CheckCircle, Star, Wifi, Shield, BarChart3, Smartphone, Download, Eye, EyeOff, Plus, Trash2, TrendingUp, TrendingDown, AlertCircle, Heart } from 'lucide-react';
-import { getSession, signOut } from '../utils/supabaseClient';import { AdminActivation } from './components/AdminActivation';
- import { PaymentPage } from './components/PaymentPage';
+import { getSession, signOut } from '../utils/supabaseClient';
+import { AdminActivation } from './components/AdminActivation';
+import { PaymentPage } from './components/PaymentPage';
 type View = 'dashboard' | 'crops' | 'livestock' | 'money' | 'people' | 'settings' | 'admin';
 type AppMode = 'landing' | 'auth' | 'app';
 
 const WHATSAPP_URL = "https://wa.me/256782016339?text=Hi%2C+I+want+to+activate+my+Evie+Farm+App.+I+have+paid+UGX+200%2C000+via+Mobile+Money.+My+name+is+";
+const OWNER_ADMIN_EMAIL = 'evieplanets@gmail.com';
 
 function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -32,12 +34,12 @@ function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
         <div className="text-center pt-8 pb-12">
           <div className="inline-flex items-center gap-2 bg-green-500 bg-opacity-40 text-white px-4 py-2 rounded-full mb-6 border border-green-400">
             <Star className="w-4 h-4 fill-yellow-300 text-yellow-300" />
-          7 days free. Then UGX 200,000 for 2 years. Renewable every 2 years.
+            <span className="font-semibold">7 Days Free — Then UGX 200,000 for 2 Years</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">Manage Your Farm<br />Like a Business</h1>
           <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">Track crops, livestock, finances, and workers — all in one app. Built for African farmers in Uganda.</p>
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-auto mb-8">
-            UGX 200,000 for 2 years after the 7-day free trial
+            <p className="text-gray-500 mb-1">UGX 200,000 for 2 years after the 7-day free trial</p>
             <div className="flex items-baseline justify-center gap-2 mb-1">
               <span className="text-5xl font-bold text-green-700">UGX 200,000</span>
             </div>
@@ -73,7 +75,7 @@ function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
         </div>
         <div className="text-center">
           <button onClick={onGetStarted} className="px-12 py-5 bg-white text-green-700 rounded-full font-bold text-xl hover:bg-gray-100 transition-all shadow-2xl">Start Free Trial Now</button>
-         7 days free. Then UGX 200,000 for 2 years. Renewable every 2 years.
+          <p className="text-green-200 mt-4">7 days free. Then UGX 200,000 for 2 years. Renewable every 2 years.</p>
         </div>
       </div>
     </div>
@@ -246,7 +248,7 @@ const license = {
               </div>
               <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
                 <h4 className="font-bold text-green-900 mb-1">7 Days Free Trial</h4>
-                <p className="text-sm text-green-800">Full access free for 7 days. After trial: pay UGX 200,000 once. No monthly fees ever.</p>
+                <p className="text-sm text-green-800">Full access free for 7 days. After trial: UGX 200,000 for 2 years. Renewable every 2 years.</p>
               </div>
               <button type="submit" className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold text-lg shadow-lg">Start Free Trial</button>
             </form>
@@ -258,7 +260,7 @@ const license = {
   );
 }
 
-function PaymentBanner({ user }: { user: any }) {
+function PaymentBanner({ user, onPay }: { user: any; onPay: () => void }) {
   const [dismissed, setDismissed] = useState(false);
   const [daysLeft, setDaysLeft] = useState(7);
   useEffect(() => {
@@ -282,7 +284,7 @@ function PaymentBanner({ user }: { user: any }) {
             <p className="font-bold text-sm">{expired?'Trial ended — Activate Now!':`${daysLeft} day${daysLeft===1?'':'s'} left in your free trial`}</p>
             <p className="text-green-100 text-sm mt-0.5">Send UGX 200,000 via MTN/Airtel to: <strong>0782016339</strong> or <strong>0704296938</strong></p>
            <button
-  onClick={() => setShowPayment(true)}
+  onClick={onPay}
   className="w-full flex items-center justify-center py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700"
 >
   Continue to Payment
@@ -699,8 +701,8 @@ function SettingsView({ user, farm }: { user: any; farm: any }) {
           <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-yellow-600" /><div><p className="font-bold">MTN Mobile Money</p><p className="text-gray-600 font-semibold">0782016339</p></div></div>
           <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-red-600" /><div><p className="font-bold">Airtel Money</p><p className="text-gray-600 font-semibold">0704296938</p></div></div>
         </div>
-        <p className="text-sm text-green-700 mb-3">After payment, click the button below for instant activation.</p>
-        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center gap-2 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors">💬 WhatsApp Us to Activate Now</a>
+        <p className="text-sm text-green-700 mb-3">After payment, submit your Mobile Money transaction reference for EVIE verification.</p>
+        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center gap-2 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors">💬 Contact EVIE on WhatsApp</a>
       </div>
     </div>
   );
@@ -713,7 +715,7 @@ export default function AppCommercial() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
-const [showPayment, setShowPayment] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
   useEffect(() => {
     if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
@@ -773,7 +775,7 @@ const trialExpired =
   trialEnd.getTime() <= Date.now();
 
 const isOwnerAdmin =
-  currentUser?.email?.toLowerCase() === OWNER_ADMIN_EMAIL.toLowerCase() ||
+  currentUser?.email?.toLowerCase().trim() === OWNER_ADMIN_EMAIL.toLowerCase() ||
   currentUser?.phone?.replace(/\s+/g, '') === '+256782016339' ||
   currentUser?.phone?.replace(/\s+/g, '') === '0782016339';
 if (showPayment && currentUser) {
@@ -842,13 +844,20 @@ if (trialExpired && !activeLicense && !isOwnerAdmin) {
           </p>
         </div>
 
+        <button
+          type="button"
+          onClick={() => setShowPayment(true)}
+          className="w-full flex items-center justify-center py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700"
+        >
+          Continue to Payment
+        </button>
         <a
           href={WHATSAPP_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full flex items-center justify-center py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700"
+          className="w-full mt-3 flex items-center justify-center py-3 bg-green-50 text-green-700 border border-green-200 rounded-xl font-semibold"
         >
-          💬 Submit Payment for Activation
+          Contact EVIE on WhatsApp
         </a>
 
         <button
@@ -898,7 +907,7 @@ const renderView = () => {
 
   return (
     <div className={`min-h-screen bg-gray-50 ${highContrast?'high-contrast':''}`}>
-      <PaymentBanner user={currentUser} />
+      <PaymentBanner user={currentUser} onPay={() => setShowPayment(true)} />
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="px-4 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -916,7 +925,7 @@ const renderView = () => {
                 </button>
                 <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg">
                   <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-semibold">{(currentUser.fullName||'U').charAt(0)}</div>
-                  <div><p className="font-semibold text-gray-900">{currentUser.fullName}</p><p className="text-gray-600 text-sm">Owner</p></div>
+                  <div><p className="font-semibold text-gray-900">{currentUser.fullName}</p><p className="text-gray-600 text-sm">{isOwnerAdmin ? 'EVIE Admin' : 'Farm Owner'}</p></div>
                 </div>
                 <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"><LogOut className="w-5 h-5" /></button>
               </div>
@@ -945,7 +954,7 @@ const renderView = () => {
                 <div className="mb-4 p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-semibold">{(currentUser.fullName||'U').charAt(0)}</div>
-                    <div><p className="font-semibold text-gray-900">{currentUser.fullName}</p><p className="text-gray-600 text-sm">Owner</p></div>
+                    <div><p className="font-semibold text-gray-900">{currentUser.fullName}</p><p className="text-gray-600 text-sm">{isOwnerAdmin ? 'EVIE Admin' : 'Farm Owner'}</p></div>
                   </div>
                   <button onClick={() => setHighContrast(!highContrast)} className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg mb-2 ${highContrast?'bg-yellow-500 text-white':'bg-gray-200 text-gray-800'}`}>
                     <Sun className="w-5 h-5" />{highContrast?'Outdoor Mode ON':'Outdoor Mode OFF'}
