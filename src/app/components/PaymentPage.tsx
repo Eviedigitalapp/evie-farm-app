@@ -72,7 +72,7 @@ export function PaymentPage({
     setSubmitting(true);
 
     try {
-      const response = await fetch('/api/payments', {
+      const response = await fetch('/api/submit-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
