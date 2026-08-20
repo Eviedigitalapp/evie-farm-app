@@ -119,14 +119,24 @@ export function PaymentPage({
         })
       });
 
-      const result = await response.json();
+  const responseText = await response.text();
 
-      if (!response.ok) {
-        throw new Error(
-          result?.error ||
-            'Payment submission failed.'
-        );
-      }
+let result: any = {};
+
+try {
+  result = responseText
+    ? JSON.parse(responseText)
+    : {};
+} catch {
+  result = {};
+}
+
+if (!response.ok) {
+  throw new Error(
+    result?.error ||
+    `Payment API error ${response.status}: ${responseText.slice(0, 200)}`
+  );
+}
 
       setSubmitted(true);
 
