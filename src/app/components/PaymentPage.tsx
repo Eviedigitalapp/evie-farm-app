@@ -7,6 +7,7 @@ import {
   Clock,
   ShieldCheck
 } from 'lucide-react';
+
 import type { Subscription } from '../types/commercial';
 
 interface PaymentPageProps {
@@ -28,16 +29,31 @@ export function PaymentPage({
   userPhone,
   userEmail,
   userFullName,
-  onBack
+  onBack,
+  onSuccess
 }: PaymentPageProps) {
   const [paymentMethod, setPaymentMethod] =
-    useState<'mtn-mobile-money' | 'airtel-money'>('mtn-mobile-money');
+    useState<'mtn-mobile-money' | 'airtel-money'>(
+      'mtn-mobile-money'
+    );
 
-  const [paymentPhone, setPaymentPhone] = useState(userPhone || '');
-  const [transactionRef, setTransactionRef] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [copied, setCopied] = useState('');
+  const [paymentPhone, setPaymentPhone] =
+    useState(userPhone || '');
+
+  const [transactionRef, setTransactionRef] =
+    useState('');
+
+  const [submitted, setSubmitted] =
+    useState(false);
+
+  const [submitting, setSubmitting] =
+    useState(false);
+
+  const [errorMessage, setErrorMessage] =
+    useState('');
+
+  const [copied, setCopied] =
+    useState('');
 
   const selectedNumber =
     paymentMethod === 'mtn-mobile-money'
@@ -49,9 +65,13 @@ export function PaymentPage({
       ? 'MTN Mobile Money'
       : 'Airtel Money';
 
-  const copyNumber = async (number: string, network: string) => {
+  const copyNumber = async (
+    number: string,
+    network: string
+  ) => {
     try {
       await navigator.clipboard.writeText(number);
+
       setCopied(network);
 
       setTimeout(() => {
@@ -66,64 +86,65 @@ export function PaymentPage({
     setErrorMessage('');
 
     if (!paymentPhone || paymentPhone.length < 10) {
-      setErrorMessage('Please enter the phone number used to make the payment.');
+      setErrorMessage(
+        'Please enter the phone number used to make the payment.'
+      );
       return;
     }
 
     if (!transactionRef.trim()) {
-      setErrorMessage('Please enter your Mobile Money transaction reference.');
+      setErrorMessage(
+        'Please enter your Mobile Money transaction reference.'
+      );
       return;
     }
 
-    const payment = {
-      id: `payment_${Date.now()}`,
-      subscriptionId: subscription?.id,
-      userId: subscription?.userId,
-      fullName: userFullName,
-      email: userEmail,
-      phoneNumber: paymentPhone,
-      amount: ACCESS_FEE,
-      currency: 'UGX',
-      paymentMethod,
-      paymentNetwork: selectedNetwork,
-      transactionRef: transactionRef.trim(),
-      status: 'pending_activation',
-      submittedAt: new Date().toISOString()
-    };
+    setSubmitting(true);
 
     try {
-  const response = await fetch('/api/payments', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      userId: payment.userId,
-      fullName: payment.fullName,
-      email: payment.email,
-      phone: payment.phoneNumber,
-      paymentNetwork: payment.paymentNetwork,
-      transactionRef: payment.transactionRef,
-      amount: payment.amount,
-      currency: payment.currency
-    })
-  });
+      const response = await fetch('/api/payments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: subscription?.userId,
+          fullName: userFullName,
+          email: userEmail,
+          phone: paymentPhone,
+          paymentNetwork: selectedNetwork,
+          transactionRef: transactionRef.trim(),
+          amount: ACCESS_FEE,
+          currency: 'UGX'
+        })
+      });
 
-  const result = await response.json();
+      const result = await response.json();
 
-  if (!response.ok) {
-    throw new Error(result.error || 'Payment submission failed.');
-  }
+      if (!response.ok) {
+        throw new Error(
+          result?.error ||
+            'Payment submission failed.'
+        );
+      }
 
-  setSubmitted(true);
+      setSubmitted(true);
 
-} catch (error) {
-  console.error('Payment submission error:', error);
+      onSuccess?.();
+    } catch (error) {
+      console.error(
+        'Payment submission error:',
+        error
+      );
 
-  setErrorMessage(
-    'Payment could not be submitted. Please check your internet connection and try again.'
-  );
-}
+      setErrorMessage(
+        'Payment could not be submitted. Please check your internet connection and try again.'
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const whatsappMessage = encodeURIComponent(
     `Hello EVIE. I have paid UGX 200,000 for 2 years access.
 
@@ -159,6 +180,7 @@ Please verify my payment and activate my account.`
 
             <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-5 text-left mb-6">
               <div className="flex items-start gap-3">
+
                 <Clock className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
 
                 <div>
@@ -168,29 +190,44 @@ Please verify my payment and activate my account.`
 
                   <p className="text-yellow-800 text-sm">
                     EVIE will verify your Mobile Money payment.
-                    Your 2-year access period will start only when
-                    your account is activated.
+                    Your 2-year access period starts when your
+                    account is activated.
                   </p>
                 </div>
+
               </div>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-5 text-left space-y-3 mb-6">
+
               <div className="flex justify-between">
-                <span className="text-gray-600">Amount</span>
+                <span className="text-gray-600">
+                  Amount
+                </span>
+
                 <span className="font-bold">
                   UGX {ACCESS_FEE.toLocaleString()}
                 </span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-gray-600">Access period</span>
-                <span className="font-bold">2 Years</span>
+                <span className="text-gray-600">
+                  Access period
+                </span>
+
+                <span className="font-bold">
+                  2 Years
+                </span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-gray-600">Network</span>
-                <span className="font-bold">{selectedNetwork}</span>
+                <span className="text-gray-600">
+                  Network
+                </span>
+
+                <span className="font-bold">
+                  {selectedNetwork}
+                </span>
               </div>
 
               <div className="flex justify-between gap-4">
@@ -204,12 +241,15 @@ Please verify my payment and activate my account.`
               </div>
 
               <div className="flex justify-between">
-                <span className="text-gray-600">Status</span>
+                <span className="text-gray-600">
+                  Status
+                </span>
 
                 <span className="font-bold text-yellow-700">
                   Awaiting Activation
                 </span>
               </div>
+
             </div>
 
             <a
@@ -276,27 +316,37 @@ Please verify my payment and activate my account.`
 
             <div className="flex items-center gap-3">
               <CheckCircle className="w-5 h-5" />
-              <span>Full farm management access</span>
+              <span>
+                Full farm management access
+              </span>
             </div>
 
             <div className="flex items-center gap-3">
               <CheckCircle className="w-5 h-5" />
-              <span>Crops and livestock management</span>
+              <span>
+                Crops and livestock management
+              </span>
             </div>
 
             <div className="flex items-center gap-3">
               <CheckCircle className="w-5 h-5" />
-              <span>Financial records and reports</span>
+              <span>
+                Financial records and reports
+              </span>
             </div>
 
             <div className="flex items-center gap-3">
               <CheckCircle className="w-5 h-5" />
-              <span>Staff and worker management</span>
+              <span>
+                Staff and worker management
+              </span>
             </div>
 
             <div className="flex items-center gap-3">
               <CheckCircle className="w-5 h-5" />
-              <span>Renewable every 2 years</span>
+              <span>
+                Renewable every 2 years
+              </span>
             </div>
 
           </div>
@@ -341,9 +391,9 @@ Please verify my payment and activate my account.`
 
               </div>
 
-              {paymentMethod === 'mtn-mobile-money' &&
+              {paymentMethod === 'mtn-mobile-money' && (
                 <CheckCircle className="w-6 h-6 text-green-600" />
-              }
+              )}
             </button>
 
             <button
@@ -372,9 +422,9 @@ Please verify my payment and activate my account.`
 
               </div>
 
-              {paymentMethod === 'airtel-money' &&
+              {paymentMethod === 'airtel-money' && (
                 <CheckCircle className="w-6 h-6 text-green-600" />
-              }
+              )}
             </button>
 
           </div>
@@ -399,7 +449,10 @@ Please verify my payment and activate my account.`
 
               <button
                 onClick={() =>
-                  copyNumber(selectedNumber, selectedNetwork)
+                  copyNumber(
+                    selectedNumber,
+                    selectedNetwork
+                  )
                 }
                 className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg font-semibold text-blue-700"
               >
@@ -463,6 +516,7 @@ Please verify my payment and activate my account.`
           <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-6 mb-6">
 
             <div className="flex gap-3">
+
               <ShieldCheck className="w-6 h-6 text-green-600 flex-shrink-0" />
 
               <div>
@@ -472,20 +526,23 @@ Please verify my payment and activate my account.`
 
                 <p className="text-sm text-green-800">
                   Submitting your payment does not immediately
-                  activate the account. EVIE will verify the
+                  activate the account. EVIE verifies the
                   payment first. Your 2-year access starts from
                   the date EVIE activates your account.
                 </p>
               </div>
-            </div>
 
+            </div>
           </div>
 
           <button
             onClick={handleSubmitPayment}
-            className="w-full py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 shadow-lg"
+            disabled={submitting}
+            className="w-full py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 shadow-lg disabled:opacity-50"
           >
-            Submit Payment for Activation
+            {submitting
+              ? 'Submitting...'
+              : 'Submit Payment for Activation'}
           </button>
 
         </div>
