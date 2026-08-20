@@ -1,0 +1,83 @@
+import { neon } from '@neondatabase/serverless';
+
+const sql = neon(process.env.DATABASE_URL!);
+
+export default async function handler(req: any, res: any) {
+  try {
+    if (req.method === 'POST') {
+      const {
+        userId,
+        fullName,
+        email,
+        phone,
+        paymentNetwork,
+        transactionRef,
+        amount = 200000,
+        currency = 'UGX'
+      } = req.body || {};
+
+      if (!userId || !transactionRef) {
+        return res.status(400).json({
+          error: 'User ID and transaction reference are required.'
+        });
+      }
+
+      const result = await sql`
+        INSERT INTO evie_payments (
+          user_id,
+          full_name,
+          email,
+          phone,
+          payment_network,
+          transaction_ref,
+          amount,
+          currency,
+          status
+        )
+        VALUES (
+          ${userId},
+          ${fullName || ''},
+          ${email || ''},
+          ${phone || ''},
+          ${paymentNetwork || ''},
+          ${transactionRef},
+          ${amount},
+          ${currency},
+          'pending_activation'
+        )
+        RETURNING *
+      `;
+
+      return res.status(201).json({
+        success: true,
+        payment: result[0]
+      });
+    }
+
+    if (req.method === 'GET') {
+      const payments = await sql`
+        SELECT *
+        FROM evie_payments
+        ORDER BY submitted_at DESC
+      `;
+
+      return res.status(200).json({
+        success: true,
+        payments
+      });
+    }
+
+    res.setHeader('Allow', ['GET', 'POST']);
+
+    return res.status(405).json({
+      error: 'Method not allowed.'
+    });
+  } catch (error: any) {
+    console.error('EVIE payments API error:', error);
+
+    return res.status(500).json({
+      error: 'Server error.',
+      details: error?.message || 'Unknown error'
+    });
+  }
+}
