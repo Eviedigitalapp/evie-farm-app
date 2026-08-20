@@ -118,7 +118,24 @@ export function PaymentPage({
           currency: 'UGX'
         })
       });
+const responseText = await response.text();
 
+let result: any = {};
+
+try {
+  result = responseText
+    ? JSON.parse(responseText)
+    : {};
+} catch {
+  result = {};
+}
+
+if (!response.ok) {
+  throw new Error(
+    result?.error ||
+      `Payment API error ${response.status}: ${responseText.slice(0, 200)}`
+  );
+}
   const responseText = await response.text();
 
 let result: any = {};
