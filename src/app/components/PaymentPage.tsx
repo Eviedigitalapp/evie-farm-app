@@ -62,7 +62,7 @@ export function PaymentPage({
     }
   };
 
-  const handleSubmitPayment = () => {
+  const handleSubmitPayment = async () => {
     setErrorMessage('');
 
     if (!paymentPhone || paymentPhone.length < 10) {
@@ -91,20 +91,39 @@ export function PaymentPage({
       submittedAt: new Date().toISOString()
     };
 
-    const storedPayments = JSON.parse(
-      localStorage.getItem('evie_payments') || '[]'
-    );
+    try {
+  const response = await fetch('/api/payments', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      userId: payment.userId,
+      fullName: payment.fullName,
+      email: payment.email,
+      phone: payment.phoneNumber,
+      paymentNetwork: payment.paymentNetwork,
+      transactionRef: payment.transactionRef,
+      amount: payment.amount,
+      currency: payment.currency
+    })
+  });
 
-    storedPayments.push(payment);
+  const result = await response.json();
 
-    localStorage.setItem(
-      'evie_payments',
-      JSON.stringify(storedPayments)
-    );
+  if (!response.ok) {
+    throw new Error(result.error || 'Payment submission failed.');
+  }
 
-    setSubmitted(true);
-  };
+  setSubmitted(true);
 
+} catch (error) {
+  console.error('Payment submission error:', error);
+
+  setErrorMessage(
+    'Payment could not be submitted. Please check your internet connection and try again.'
+  );
+}
   const whatsappMessage = encodeURIComponent(
     `Hello EVIE. I have paid UGX 200,000 for 2 years access.
 
