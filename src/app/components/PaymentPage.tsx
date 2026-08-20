@@ -131,16 +131,17 @@ export function PaymentPage({
       setSubmitted(true);
 
       onSuccess?.();
-    } catch (error) {
-      console.error(
-        'Payment submission error:',
-        error
-      );
+   } catch (error: any) {
+  console.error(
+    'Payment submission error:',
+    error
+  );
 
-      setErrorMessage(
-        'Payment could not be submitted. Please check your internet connection and try again.'
-      );
-    } finally {
+  setErrorMessage(
+    error?.message ||
+      'Payment could not be submitted.'
+  );
+}finally {
       setSubmitting(false);
     }
   };
