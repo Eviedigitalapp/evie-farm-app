@@ -826,23 +826,39 @@ const [licenseChecked, setLicenseChecked] = useState(false);
     check();
   }, []);
 
-  const handleAuthenticated = (user: any, _sub: any, farm: any) => { setCurrentUser(user); setCurrentFarm(farm); setAppMode('app'); };
-  const handleLogout = async () => {
-    try { await signOut(); } catch {}
-    localStorage.removeItem('evie_user'); localStorage.removeItem('evie_farm');
-    setCurrentUser(null); setCurrentFarm(null); setAppMode('landing');
-  };
+  const handleAuthenticated = (
+  user: any,
+  _sub: any,
+  farm: any
+) => {
+  setCurrentUser(user);
+  setCurrentFarm(farm);
+  setAppMode('app');
+};
 
-  useEffect(() => {
+const handleLogout = async () => {
+  try {
+    await signOut();
+  } catch {}
+
+  localStorage.removeItem('evie_user');
+  localStorage.removeItem('evie_farm');
+
+  setCurrentUser(null);
+  setCurrentFarm(null);
+  setActiveLicense(null);
+  setLicenseChecked(false);
+  setAppMode('landing');
+};
+
+useEffect(() => {
   const checkActiveLicense = async () => {
-    // No logged-in user yet.
     if (!currentUser?.id) {
       setActiveLicense(null);
       setLicenseChecked(true);
       return;
     }
 
-    // Start a fresh licence check whenever the user changes.
     setLicenseChecked(false);
 
     try {
@@ -882,6 +898,30 @@ const [licenseChecked, setLicenseChecked] = useState(false);
         error
       );
 
+      setActiveLicense(null);
+    } finally {
+      setLicenseChecked(true);
+    }
+  };
+
+  checkActiveLicense();
+}, [currentUser?.id]);
+
+if (appMode === 'landing') {
+  return (
+    <LandingPage
+      onGetStarted={() => setAppMode('auth')}
+    />
+  );
+}
+
+if (appMode === 'auth') {
+  return (
+    <Auth
+      onAuthenticated={handleAuthenticated}
+    />
+  );
+}
       setActiveLicense(null);
     } finally {
       setLicenseChecked(true);
