@@ -100,123 +100,86 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
   const [newPass, setNewPass] = useState('');
   const [newPass2, setNewPass2] = useState('');
 
-  const makeSession = (
-  userId: string,
-  p: string,
-  n: string,
-  e: string,
-  fn: string,
-  fl: string
-) => {
-  const farmId = `farm_${userId}`;
+  const makeSession = (userId: string, p: string, n: string, e: string, fn: string, fl: string) => {
+    const farmId = `farm_${userId}`;
 
-  const user = {
-    id: userId,
-    email: e || `${p.replace(/\s+/g, '')}@eviefarm.app`,
-    phone: p,
-    fullName: n,
-    farmIds: [farmId],
-    createdAt: new Date().toISOString()
+    const user = {
+      id: userId,
+      email: e || '',
+      phone: p,
+      fullName: n,
+      farmIds: [farmId],
+      createdAt: new Date().toISOString()
+    };
+
+    const farm = {
+      id: farmId,
+      name: fn || 'My Farm',
+      ownerId: userId,
+      location: fl || 'Uganda',
+      size: 'Not specified',
+      createdAt: new Date().toISOString()
+    };
+
+    localStorage.setItem('evie_user', JSON.stringify(user));
+    localStorage.setItem('evie_farm', JSON.stringify(farm));
+
+    return { user, farm };
   };
-
-  const farm = {
-    id: farmId,
-    name: fn || 'My Farm',
-    ownerId: userId,
-    location: fl || 'Uganda',
-    size: 'Not specified',
-    createdAt: new Date().toISOString()
-  };
-
-  localStorage.setItem(
-    'evie_user',
-    JSON.stringify(user)
-  );
-
-  localStorage.setItem(
-    'evie_farm',
-    JSON.stringify(farm)
-  );
-
-  return { user, farm };
-};
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginPhone || !loginPass) { setError('Please fill in all fields'); return; }
+
+    if (!loginPhone || !loginPass) {
+      setError('Please fill in all fields');
+      return;
+    }
+
     const stored = JSON.parse(localStorage.getItem('evie_user') || 'null');
-    const userId = stored?.id || `user_${loginPhone.replace(/\s+/g,'')}`;
-const storedFarm = JSON.parse(localStorage.getItem('evie_farm') || 'null');
+    const storedFarm = JSON.parse(localStorage.getItem('evie_farm') || 'null');
 
-const isEmailLogin = loginPhone.includes('@');
+    const isEmailLogin = loginPhone.includes('@');
+    const normalizedLogin = loginPhone.toLowerCase().trim();
 
-const user = stored || {
-  id: userId,
-  phone: isEmailLogin ? '' : loginPhone,
-  fullName: isEmailLogin
-    ? loginPhone.split('@')[0]
-    : loginPhone,
-  email: isEmailLogin
-    ? loginPhone.toLowerCase().trim()
-    : '',
-  createdAt: new Date().toISOString()
-};
+    const userId =
+      stored?.id ||
+      `user_${isEmailLogin ? normalizedLogin : loginPhone.replace(/\s+/g, '')}`;
 
-const farm = storedFarm || {
-  id: `farm_${userId}`,
-  name: 'My Farm',
-  ownerId: userId,
-  location: 'Uganda',
-  size: 'Not specified',
-  createdAt: new Date().toISOString()
-};
+    const user = stored || {
+      id: userId,
+      phone: isEmailLogin ? '' : loginPhone,
+      fullName: isEmailLogin ? loginPhone.split('@')[0] : loginPhone,
+      email: isEmailLogin ? normalizedLogin : '',
+      createdAt: new Date().toISOString()
+    };
 
-setSuccess('Login successful!');
+    const farm = storedFarm || {
+      id: `farm_${userId}`,
+      name: 'My Farm',
+      ownerId: userId,
+      location: 'Uganda',
+      size: 'Not specified',
+      createdAt: new Date().toISOString()
+    };
 
-setTimeout(
-  () => onAuthenticated(user, null, farm),
-  500
-);
-};
+    localStorage.setItem('evie_user', JSON.stringify(user));
+    localStorage.setItem('evie_farm', JSON.stringify(farm));
 
-const handleRegister = (e: React.FormEvent) => {
-  e.preventDefault();
+    setSuccess('Login successful!');
+    setTimeout(() => onAuthenticated(user, null, farm), 500);
+  };
 
-  if (!name || !phone || !pass || !farmName || !farmLoc) {
-    setError('Please fill in all required fields');
-    return;
-  }
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !phone || !pass || !farmName || !farmLoc) { setError('Please fill in all required fields'); return; }
+    if (pass !== pass2) { setError('Passwords do not match'); return; }
+    if (pass.length < 6) { setError('Password must be at least 6 characters'); return; }
+    const userId = `user_${Date.now()}`;
+    const { user, farm } = makeSession(userId, phone, name, email, farmName, farmLoc);
+    setSuccess('Account created! Your 7-day free trial has started!');
+    setTimeout(() => onAuthenticated(user, null, farm), 1500);
+  };
 
-  if (pass !== pass2) {
-    setError('Passwords do not match');
-    return;
-  }
-
-  if (pass.length < 6) {
-    setError('Password must be at least 6 characters');
-    return;
-  }
-
-  const userId = `user_${Date.now()}`;
-
-  const { user, farm } = makeSession(
-    userId,
-    phone,
-    name,
-    email,
-    farmName,
-    farmLoc
-  );
-
-  setSuccess(
-    'Account created! Your 7-day free trial has started!'
-  );
-
-  setTimeout(
-    () => onAuthenticated(user, null, farm),
-    1500
-  );
-};
   const handleReset = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -232,9 +195,9 @@ const handleRegister = (e: React.FormEvent) => {
       setTimeout(() => { setMode('login'); setSuccess(''); setError(''); setResetPhone(''); setNewPass(''); setNewPass2(''); }, 2500);
     } else {
       const userId = `user_${resetPhone.replace(/\s+/g,'')}`;
-      const { user, farm, license } = makeSession(userId, resetPhone, resetPhone, '', 'My Farm', 'Uganda');
+      const { user, farm } = makeSession(userId, resetPhone, resetPhone, '', 'My Farm', 'Uganda');
       setSuccess('Account recovered! Redirecting...');
-      setTimeout(() => onAuthenticated(user, license, farm), 1500);
+      setTimeout(() => onAuthenticated(user, null, farm), 1500);
     }
   };
 
@@ -316,62 +279,92 @@ const handleRegister = (e: React.FormEvent) => {
 function PaymentBanner({ user, onPay }: { user: any; onPay: () => void }) {
   const [dismissed, setDismissed] = useState(false);
   const [daysLeft, setDaysLeft] = useState(7);
+
   useEffect(() => {
-    if (!user) return;
-   const checkLicense = async () => {
-  try {
-    const response = await fetch(
-      `/api/license?userId=${encodeURIComponent(user.id)}`
-    );
+    if (!user?.id) return;
 
-    const result = await response.json();
+    let cancelled = false;
 
-    if (result?.active) {
-      setDismissed(true);
-      return;
-    }
+    const checkLicense = async () => {
+      try {
+        const response = await fetch(
+          `/api/license?userId=${encodeURIComponent(user.id)}`
+        );
 
-    if (user.createdAt) {
-      const trialEnd = new Date(
-        new Date(user.createdAt).getTime() +
-          7 * 24 * 60 * 60 * 1000
-      );
+        const result = await response.json();
 
-      setDaysLeft(
-        Math.max(
-          0,
-          Math.ceil(
-            (trialEnd.getTime() - Date.now()) / 86400000
-          )
-        )
-      );
-    }
-  } catch (error) {
-    console.error('License check failed:', error);
-  }
-};
+        if (cancelled) return;
 
-checkLicense();
-  }, [user]);
+        if (result?.active) {
+          setDismissed(true);
+          return;
+        }
+
+        if (user.createdAt) {
+          const trialEnd = new Date(
+            new Date(user.createdAt).getTime() +
+              7 * 24 * 60 * 60 * 1000
+          );
+
+          setDaysLeft(
+            Math.max(
+              0,
+              Math.ceil(
+                (trialEnd.getTime() - Date.now()) / 86400000
+              )
+            )
+          );
+        }
+      } catch (error) {
+        console.error('License banner check failed:', error);
+      }
+    };
+
+    checkLicense();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, user?.createdAt]);
+
   if (dismissed) return null;
+
   const expired = daysLeft === 0;
+
   return (
-    <div className={`${expired?'bg-red-700':'bg-green-700'} text-white px-4 py-3`}>
+    <div className={`${expired ? 'bg-red-700' : 'bg-green-700'} text-white px-4 py-3`}>
       <div className="max-w-5xl mx-auto flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <Clock className="w-5 h-5 flex-shrink-0 mt-0.5" />
+
           <div>
-            <p className="font-bold text-sm">{expired?'Trial ended — Activate Now!':`${daysLeft} day${daysLeft===1?'':'s'} left in your free trial`}</p>
-            <p className="text-green-100 text-sm mt-0.5">Send UGX 200,000 via MTN/Airtel to: <strong>0782016339</strong> or <strong>0704296938</strong></p>
-           <button
-  onClick={onPay}
-  className="w-full flex items-center justify-center py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700"
->
-  Continue to Payment
-</button>
+            <p className="font-bold text-sm">
+              {expired
+                ? 'Trial ended — Activate Now!'
+                : `${daysLeft} day${daysLeft === 1 ? '' : 's'} left in your free trial`}
+            </p>
+
+            <p className="text-green-100 text-sm mt-0.5">
+              Send UGX 200,000 via MTN/Airtel to: <strong>0782016339</strong> or <strong>0704296938</strong>
+            </p>
+
+            <button
+              onClick={onPay}
+              className="mt-2 px-4 py-2 bg-white text-green-700 rounded-lg font-bold text-sm"
+            >
+              Continue to Payment
+            </button>
           </div>
         </div>
-        {!expired && <button onClick={() => setDismissed(true)} className="opacity-70 hover:opacity-100 flex-shrink-0"><X className="w-5 h-5" /></button>}
+
+        {!expired && (
+          <button
+            onClick={() => setDismissed(true)}
+            className="opacity-70 hover:opacity-100 flex-shrink-0"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -797,7 +790,7 @@ export default function AppCommercial() {
   const [highContrast, setHighContrast] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [activeLicense, setActiveLicense] = useState<any>(null);
-const [licenseChecked, setLicenseChecked] = useState(false);
+  const [licenseChecked, setLicenseChecked] = useState(false);
   useEffect(() => {
     if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
@@ -826,190 +819,108 @@ const [licenseChecked, setLicenseChecked] = useState(false);
     check();
   }, []);
 
-  const handleAuthenticated = (
-  user: any,
-  _sub: any,
-  farm: any
-) => {
-  setCurrentUser(user);
-  setCurrentFarm(farm);
-  setAppMode('app');
-};
+  const handleAuthenticated = (user: any, _sub: any, farm: any) => {
+    setCurrentUser(user);
+    setCurrentFarm(farm);
+    setAppMode('app');
+  };
 
-const handleLogout = async () => {
-  try {
-    await signOut();
-  } catch {}
-
-  localStorage.removeItem('evie_user');
-  localStorage.removeItem('evie_farm');
-
-  setCurrentUser(null);
-  setCurrentFarm(null);
-  setActiveLicense(null);
-  setLicenseChecked(false);
-  setAppMode('landing');
-};
-
-useEffect(() => {
-  const checkActiveLicense = async () => {
-    if (!currentUser?.id) {
-      setActiveLicense(null);
-      setLicenseChecked(true);
-      return;
-    }
-
-    setLicenseChecked(false);
-
+  const handleLogout = async () => {
     try {
-      const response = await fetch(
-        `/api/license?userId=${encodeURIComponent(currentUser.id)}`
-      );
+      await signOut();
+    } catch {}
 
-      const responseText = await response.text();
+    localStorage.removeItem('evie_user');
+    localStorage.removeItem('evie_farm');
 
-      let result: any = {};
+    setCurrentUser(null);
+    setCurrentFarm(null);
+    setActiveLicense(null);
+    setLicenseChecked(false);
+    setAppMode('landing');
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkActiveLicense = async () => {
+      if (!currentUser?.id) {
+        if (!cancelled) {
+          setActiveLicense(null);
+          setLicenseChecked(true);
+        }
+        return;
+      }
+
+      setLicenseChecked(false);
 
       try {
-        result = responseText
-          ? JSON.parse(responseText)
-          : {};
-      } catch {
-        throw new Error(
-          `License API returned an invalid response (${response.status}).`
+        const response = await fetch(
+          `/api/license?userId=${encodeURIComponent(currentUser.id)}`
         );
+
+        const responseText = await response.text();
+
+        let result: any = {};
+
+        try {
+          result = responseText ? JSON.parse(responseText) : {};
+        } catch {
+          throw new Error(
+            `License API returned an invalid response (${response.status}).`
+          );
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            result?.error ||
+              `License check failed (${response.status}).`
+          );
+        }
+
+        if (!cancelled) {
+          setActiveLicense(
+            result?.active && result?.license
+              ? result.license
+              : null
+          );
+        }
+      } catch (error) {
+        console.error('Active license check failed:', error);
+
+        if (!cancelled) {
+          setActiveLicense(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLicenseChecked(true);
+        }
       }
+    };
 
-      if (!response.ok) {
-        throw new Error(
-          result?.error ||
-            `License check failed (${response.status}).`
-        );
-      }
+    checkActiveLicense();
 
-      if (result?.active && result?.license) {
-        setActiveLicense(result.license);
-      } else {
-        setActiveLicense(null);
-      }
-    } catch (error) {
-      console.error(
-        'Active license check failed:',
-        error
-      );
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser?.id]);
 
-      setActiveLicense(null);
-    } finally {
-      setLicenseChecked(true);
-    }
-  };
+  if (appMode === 'landing') {
+    return (
+      <LandingPage
+        onGetStarted={() => setAppMode('auth')}
+      />
+    );
+  }
 
-  checkActiveLicense();
-}, [currentUser?.id]);
+  if (appMode === 'auth') {
+    return (
+      <Auth
+        onAuthenticated={handleAuthenticated}
+      />
+    );
+  }
 
-if (appMode === 'landing') {
-  return (
-    <LandingPage
-      onGetStarted={() => setAppMode('auth')}
-    />
-  );
-}
-
-if (appMode === 'auth') {
-  return (
-    <Auth
-      onAuthenticated={handleAuthenticated}
-    />
-  );
-}
-      setActiveLicense(null);
-    } finally {
-      setLicenseChecked(true);
-    }
-  };
-
-  checkActiveLicense();
-}, [currentUser?.id]);
-
-useEffect(() => {
-  const checkActiveLicense = async () => {
-    if (!currentUser?.id) {
-      setActiveLicense(null);
-      setLicenseChecked(true);
-      return;
-    }
-
-    setLicenseChecked(false);
-
-    try {
-      const response = await fetch(
-        `/api/license?userId=${encodeURIComponent(currentUser.id)}`
-      );
-
-      const responseText = await response.text();
-
-      let result: any = {};
-
-      try {
-        result = responseText
-          ? JSON.parse(responseText)
-          : {};
-      } catch {
-        throw new Error(
-          `License API returned an invalid response (${response.status}).`
-        );
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          result?.error ||
-            `License check failed (${response.status}).`
-        );
-      }
-
-      if (result?.active && result?.license) {
-        setActiveLicense(result.license);
-      } else {
-        setActiveLicense(null);
-      }
-    } catch (error) {
-      console.error(
-        'Active license check failed:',
-        error
-      );
-
-      setActiveLicense(null);
-    } finally {
-      setLicenseChecked(true);
-    }
-  };
-
-  checkActiveLicense();
-}, [currentUser?.id]);
-
-if (appMode === 'landing') {
-  return (
-    <LandingPage
-      onGetStarted={() => setAppMode('auth')}
-    />
-  );
-}
-
-if (appMode === 'auth') {
-  return (
-    <Auth
-      onAuthenticated={handleAuthenticated}
-    />
-  );
-}
-
-if (appMode === 'auth') {
-  return (
-    <Auth
-      onAuthenticated={handleAuthenticated}
-    />
-  );
-}
 const trialEnd = currentUser?.createdAt
   ? new Date(
       new Date(currentUser.createdAt).getTime() +
@@ -1022,8 +933,11 @@ const trialExpired =
   trialEnd.getTime() <= Date.now();
 
 const isOwnerAdmin =
-  currentUser?.email?.toLowerCase().trim() ===
-  OWNER_ADMIN_EMAIL.toLowerCase();
+  (currentUser?.email || '')
+    .toLowerCase()
+    .replace(/\\/g, '')
+    .replace(/\s+/g, '')
+    .trim() === OWNER_ADMIN_EMAIL.toLowerCase();
 
 if (!licenseChecked && currentUser) {
   return (
@@ -1057,24 +971,6 @@ if (showPayment && currentUser) {
       onBack={() => setShowPayment(false)}
       onSuccess={() => setShowPayment(false)}
     />
-  );
-}
-  return (
-    <PaymentPage
-      subscription={paymentSubscription as any}
-      userPhone={currentUser.phone || ''}
-      userEmail={currentUser.email || ''}
-      userFullName={currentUser.fullName || ''}
-      onBack={() => setShowPayment(false)}
-      onSuccess={() => setShowPayment(false)}
-    />
-  );
-}
-  if (!licenseChecked && currentUser) {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-gray-600">Checking access...</p>
-    </div>
   );
 }
 if (trialExpired && !activeLicense && !isOwnerAdmin) {
