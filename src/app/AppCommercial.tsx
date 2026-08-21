@@ -271,13 +271,40 @@ function PaymentBanner({ user, onPay }: { user: any; onPay: () => void }) {
   const [daysLeft, setDaysLeft] = useState(7);
   useEffect(() => {
     if (!user) return;
-    const licenses = JSON.parse(localStorage.getItem('evie_licenses') || '[]');
-    const paid = licenses.find((l: any) => l.userId === user.id && l.status === 'active');
-    if (paid) { setDismissed(true); return; }
-    if (user.createdAt) {
-      const trialEnd = new Date(new Date(user.createdAt).getTime() + 7*24*60*60*1000);
-      setDaysLeft(Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / 86400000)));
+   const checkLicense = async () => {
+  try {
+    const response = await fetch(
+      `/api/license?userId=${encodeURIComponent(user.id)}`
+    );
+
+    const result = await response.json();
+
+    if (result?.active) {
+      setDismissed(true);
+      return;
     }
+
+    if (user.createdAt) {
+      const trialEnd = new Date(
+        new Date(user.createdAt).getTime() +
+          7 * 24 * 60 * 60 * 1000
+      );
+
+      setDaysLeft(
+        Math.max(
+          0,
+          Math.ceil(
+            (trialEnd.getTime() - Date.now()) / 86400000
+          )
+        )
+      );
+    }
+  } catch (error) {
+    console.error('License check failed:', error);
+  }
+};
+
+checkLicense();
   }, [user]);
   if (dismissed) return null;
   const expired = daysLeft === 0;
