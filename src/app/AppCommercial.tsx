@@ -844,10 +844,74 @@ const [licenseChecked, setLicenseChecked] = useState(false);
   checkActiveLicense();
 }, [currentUser?.id]);
 
+useEffect(() => {
+  const checkActiveLicense = async () => {
+    if (!currentUser?.id) {
+      setActiveLicense(null);
+      setLicenseChecked(true);
+      return;
+    }
+
+    setLicenseChecked(false);
+
+    try {
+      const response = await fetch(
+        `/api/license?userId=${encodeURIComponent(currentUser.id)}`
+      );
+
+      const responseText = await response.text();
+
+      let result: any = {};
+
+      try {
+        result = responseText
+          ? JSON.parse(responseText)
+          : {};
+      } catch {
+        throw new Error(
+          `License API returned an invalid response (${response.status}).`
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          result?.error ||
+            `License check failed (${response.status}).`
+        );
+      }
+
+      if (result?.active && result?.license) {
+        setActiveLicense(result.license);
+      } else {
+        setActiveLicense(null);
+      }
+    } catch (error) {
+      console.error(
+        'Active license check failed:',
+        error
+      );
+
+      setActiveLicense(null);
+    } finally {
+      setLicenseChecked(true);
+    }
+  };
+
+  checkActiveLicense();
+}, [currentUser?.id]);
+
 if (appMode === 'landing') {
   return (
     <LandingPage
       onGetStarted={() => setAppMode('auth')}
+    />
+  );
+}
+
+if (appMode === 'auth') {
+  return (
+    <Auth
+      onAuthenticated={handleAuthenticated}
     />
   );
 }
