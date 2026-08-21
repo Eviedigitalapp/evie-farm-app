@@ -788,13 +788,36 @@ export default function AppCommercial() {
   if (appMode === 'auth') return <Auth onAuthenticated={handleAuthenticated} />;
 const licenses = JSON.parse(localStorage.getItem('evie_licenses') || '[]');
 
-const activeLicense = licenses.find(
-  (license: any) =>
-    license.userId === currentUser?.id &&
-    license.status === 'active' &&
-    license.accessEndDate &&
-    new Date(license.accessEndDate).getTime() > Date.now()
-);
+useEffect(() => {
+  const checkActiveLicense = async () => {
+    if (!currentUser?.id) {
+      setActiveLicense(null);
+      setLicenseChecked(true);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/license?userId=${encodeURIComponent(currentUser.id)}`
+      );
+
+      const result = await response.json();
+
+      if (result?.active && result?.license) {
+        setActiveLicense(result.license);
+      } else {
+        setActiveLicense(null);
+      }
+    } catch (error) {
+      console.error('Active license check failed:', error);
+      setActiveLicense(null);
+    } finally {
+      setLicenseChecked(true);
+    }
+  };
+
+  checkActiveLicense();
+}, [currentUser?.id]);
 
 const trialEnd = currentUser?.createdAt
   ? new Date(
@@ -831,6 +854,13 @@ if (showPayment && currentUser) {
       onBack={() => setShowPayment(false)}
       onSuccess={() => setShowPayment(false)}
     />
+  );
+}
+  if (!licenseChecked && currentUser) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-gray-600">Checking access...</p>
+    </div>
   );
 }
 if (trialExpired && !activeLicense && !isOwnerAdmin) {
