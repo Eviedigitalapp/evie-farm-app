@@ -786,24 +786,43 @@ const [licenseChecked, setLicenseChecked] = useState(false);
     setCurrentUser(null); setCurrentFarm(null); setAppMode('landing');
   };
 
-  if (appMode === 'landing') return <LandingPage onGetStarted={() => setAppMode('auth')} />;
-  if (appMode === 'auth') return <Auth onAuthenticated={handleAuthenticated} />;
-const licenses = JSON.parse(localStorage.getItem('evie_licenses') || '[]');
-
-useEffect(() => {
+  useEffect(() => {
   const checkActiveLicense = async () => {
+    // No logged-in user yet.
     if (!currentUser?.id) {
       setActiveLicense(null);
       setLicenseChecked(true);
       return;
     }
 
+    // Start a fresh licence check whenever the user changes.
+    setLicenseChecked(false);
+
     try {
       const response = await fetch(
         `/api/license?userId=${encodeURIComponent(currentUser.id)}`
       );
 
-      const result = await response.json();
+      const responseText = await response.text();
+
+      let result: any = {};
+
+      try {
+        result = responseText
+          ? JSON.parse(responseText)
+          : {};
+      } catch {
+        throw new Error(
+          `License API returned an invalid response (${response.status}).`
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          result?.error ||
+            `License check failed (${response.status}).`
+        );
+      }
 
       if (result?.active && result?.license) {
         setActiveLicense(result.license);
@@ -811,7 +830,11 @@ useEffect(() => {
         setActiveLicense(null);
       }
     } catch (error) {
-      console.error('Active license check failed:', error);
+      console.error(
+        'Active license check failed:',
+        error
+      );
+
       setActiveLicense(null);
     } finally {
       setLicenseChecked(true);
@@ -821,6 +844,21 @@ useEffect(() => {
   checkActiveLicense();
 }, [currentUser?.id]);
 
+if (appMode === 'landing') {
+  return (
+    <LandingPage
+      onGetStarted={() => setAppMode('auth')}
+    />
+  );
+}
+
+if (appMode === 'auth') {
+  return (
+    <Auth
+      onAuthenticated={handleAuthenticated}
+    />
+  );
+}
 const trialEnd = currentUser?.createdAt
   ? new Date(
       new Date(currentUser.createdAt).getTime() +
