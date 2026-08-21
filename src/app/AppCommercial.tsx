@@ -117,11 +117,17 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
     const userId = stored?.id || `user_${loginPhone.replace(/\s+/g,'')}`;
 const storedFarm = JSON.parse(localStorage.getItem('evie_farm') || 'null');
 
+const isEmailLogin = loginPhone.includes('@');
+
 const user = stored || {
   id: userId,
-  phone: loginPhone,
-  fullName: loginPhone,
-  email: '',
+  phone: isEmailLogin ? '' : loginPhone,
+  fullName: isEmailLogin
+    ? loginPhone.split('@')[0]
+    : loginPhone,
+  email: isEmailLogin
+    ? loginPhone.toLowerCase().trim()
+    : '',
   createdAt: new Date().toISOString()
 };
 
