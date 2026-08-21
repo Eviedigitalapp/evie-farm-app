@@ -982,7 +982,19 @@ const trialExpired =
   trialEnd.getTime() <= Date.now();
 
 const isOwnerAdmin =
-  currentUser?.email?.toLowerCase().trim() === OWNER_ADMIN_EMAIL.toLowerCase();
+  currentUser?.email?.toLowerCase().trim() ===
+  OWNER_ADMIN_EMAIL.toLowerCase();
+
+if (!licenseChecked && currentUser) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <p className="text-gray-600 font-semibold">
+        Checking your EVIE access...
+      </p>
+    </div>
+  );
+}
+
 if (showPayment && currentUser) {
   const paymentSubscription = {
     id: `lic_${currentUser.id}`,
@@ -996,6 +1008,17 @@ if (showPayment && currentUser) {
     createdAt: currentUser.createdAt
   };
 
+  return (
+    <PaymentPage
+      subscription={paymentSubscription as any}
+      userPhone={currentUser.phone || ''}
+      userEmail={currentUser.email || ''}
+      userFullName={currentUser.fullName || ''}
+      onBack={() => setShowPayment(false)}
+      onSuccess={() => setShowPayment(false)}
+    />
+  );
+}
   return (
     <PaymentPage
       subscription={paymentSubscription as any}
