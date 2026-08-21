@@ -171,36 +171,52 @@ const farm = storedFarm || {
   createdAt: new Date().toISOString()
 };
 
-const license = {
-  id: `lic_${userId}`,
-  userId,
-  status: 'trial',
-  amount: 200000,
-  planAmount: 200000,
-  currency: 'UGX',
-  trialEndDate: new Date(
-    new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000
-  ).toISOString(),
-  currentPeriodEnd: new Date(
-    new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000
-  ).toISOString(),
-  createdAt: user.createdAt
+setSuccess('Login successful!');
+
+setTimeout(
+  () => onAuthenticated(user, null, farm),
+  500
+);
 };
-    setSuccess('Login successful!');
-    setTimeout(() => onAuthenticated(user, license, farm), 500);
-  };
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !phone || !pass || !farmName || !farmLoc) { setError('Please fill in all required fields'); return; }
-    if (pass !== pass2) { setError('Passwords do not match'); return; }
-    if (pass.length < 6) { setError('Password must be at least 6 characters'); return; }
-    const userId = `user_${Date.now()}`;
-    const { user, farm, license } = makeSession(userId, phone, name, email, farmName, farmLoc);
-    setSuccess('Account created! Your 7-day free trial has started!');
-    setTimeout(() => onAuthenticated(user, license, farm), 1500);
-  };
+const handleRegister = (e: React.FormEvent) => {
+  e.preventDefault();
 
+  if (!name || !phone || !pass || !farmName || !farmLoc) {
+    setError('Please fill in all required fields');
+    return;
+  }
+
+  if (pass !== pass2) {
+    setError('Passwords do not match');
+    return;
+  }
+
+  if (pass.length < 6) {
+    setError('Password must be at least 6 characters');
+    return;
+  }
+
+  const userId = `user_${Date.now()}`;
+
+  const { user, farm } = makeSession(
+    userId,
+    phone,
+    name,
+    email,
+    farmName,
+    farmLoc
+  );
+
+  setSuccess(
+    'Account created! Your 7-day free trial has started!'
+  );
+
+  setTimeout(
+    () => onAuthenticated(user, null, farm),
+    1500
+  );
+};
   const handleReset = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
