@@ -749,6 +749,8 @@ export default function AppCommercial() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [activeLicense, setActiveLicense] = useState<any>(null);
+const [licenseChecked, setLicenseChecked] = useState(false);
   useEffect(() => {
     if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
