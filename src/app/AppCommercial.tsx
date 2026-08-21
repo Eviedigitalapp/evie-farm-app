@@ -100,15 +100,46 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
   const [newPass, setNewPass] = useState('');
   const [newPass2, setNewPass2] = useState('');
 
-  const makeSession = (userId: string, p: string, n: string, e: string, fn: string, fl: string) => {
-    const farmId = `farm_${userId}`;
-    const user = { id: userId, email: e || `${p.replace(/\s+/g,'')}@eviefarm.app`, phone: p, fullName: n, farmIds: [farmId], createdAt: new Date().toISOString() };
-    const farm = { id: farmId, name: fn || 'My Farm', ownerId: userId, location: fl || 'Uganda', size: 'Not specified', createdAt: new Date().toISOString() };
-    const license = { id: `lic_${userId}`, userId, status: 'trial', amount: 200000, planAmount: 200000, currency: 'UGX', trialEndDate: new Date(Date.now() + 7*24*60*60*1000).toISOString(), currentPeriodEnd: new Date(Date.now() + 7*24*60*60*1000).toISOString(), createdAt: new Date().toISOString() };
-    localStorage.setItem('evie_user', JSON.stringify(user));
-    localStorage.setItem('evie_farm', JSON.stringify(farm));
-    return { user, farm, license };
+  const makeSession = (
+  userId: string,
+  p: string,
+  n: string,
+  e: string,
+  fn: string,
+  fl: string
+) => {
+  const farmId = `farm_${userId}`;
+
+  const user = {
+    id: userId,
+    email: e || `${p.replace(/\s+/g, '')}@eviefarm.app`,
+    phone: p,
+    fullName: n,
+    farmIds: [farmId],
+    createdAt: new Date().toISOString()
   };
+
+  const farm = {
+    id: farmId,
+    name: fn || 'My Farm',
+    ownerId: userId,
+    location: fl || 'Uganda',
+    size: 'Not specified',
+    createdAt: new Date().toISOString()
+  };
+
+  localStorage.setItem(
+    'evie_user',
+    JSON.stringify(user)
+  );
+
+  localStorage.setItem(
+    'evie_farm',
+    JSON.stringify(farm)
+  );
+
+  return { user, farm };
+};
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
