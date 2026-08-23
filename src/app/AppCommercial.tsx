@@ -100,17 +100,74 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
   const [newPass, setNewPass] = useState('');
   const [newPass2, setNewPass2] = useState('');
 
-  const makeSession = (userId: string, p: string, n: string, e: string, fn: string, fl: string) => {
-    const farmId = `farm_${userId}`;
+ const makeSession = (
+  userId: string,
+  p: string,
+  n: string,
+  e: string,
+  fn: string,
+  fl: string
+) => {
+  const farmId = `farm_${userId}`;
 
-    const user = {
-      id: userId,
-      email: e || '',
-      phone: p,
-      fullName: n,
-      farmIds: [farmId],
-      createdAt: new Date().toISOString()
-    };
+  const user = {
+    id: userId,
+    email: e ? e.trim().toLowerCase() : '',
+    phone: p.trim(),
+    fullName: n,
+    farmIds: [farmId],
+    createdAt: new Date().toISOString()
+  };
+
+  const farm = {
+    id: farmId,
+    name: fn || 'My Farm',
+    ownerId: userId,
+    location: fl || 'Uganda',
+    size: 'Not specified',
+    createdAt: new Date().toISOString()
+  };
+
+  const accounts = JSON.parse(
+    localStorage.getItem('evie_accounts') || '[]'
+  );
+
+  const updatedAccounts = [
+    ...accounts.filter((item: any) => item.id !== user.id),
+    user
+  ];
+
+  localStorage.setItem(
+    'evie_accounts',
+    JSON.stringify(updatedAccounts)
+  );
+
+  const farms = JSON.parse(
+    localStorage.getItem('evie_registered_farms') || '[]'
+  );
+
+  const updatedFarms = [
+    ...farms.filter((item: any) => item.id !== farm.id),
+    farm
+  ];
+
+  localStorage.setItem(
+    'evie_registered_farms',
+    JSON.stringify(updatedFarms)
+  );
+
+  localStorage.setItem(
+    'evie_user',
+    JSON.stringify(user)
+  );
+
+  localStorage.setItem(
+    'evie_farm',
+    JSON.stringify(farm)
+  );
+
+  return { user, farm };
+};
 
     const farm = {
       id: farmId,
