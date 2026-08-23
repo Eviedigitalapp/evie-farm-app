@@ -128,13 +128,80 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
   };
 
   const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!loginPhone || !loginPass) {
-      setError('Please fill in all fields');
-      return;
-    }
+  setError('');
+  setSuccess('');
 
+  if (!loginPhone || !loginPass) {
+    setError('Please fill in all fields');
+    return;
+  }
+
+  const loginValue =
+    loginPhone.trim().toLowerCase();
+
+  const normalizedPhone =
+    loginPhone.replace(/\s+/g, '');
+
+  const accounts = JSON.parse(
+    localStorage.getItem('evie_accounts') || '[]'
+  );
+
+  const user = accounts.find((item: any) => {
+    const savedEmail =
+      (item.email || '').trim().toLowerCase();
+
+    const savedPhone =
+      (item.phone || '').replace(/\s+/g, '');
+
+    return (
+      savedEmail === loginValue ||
+      savedPhone === normalizedPhone
+    );
+  });
+
+  if (!user) {
+    setError(
+      'Account not found on this device. Please use the phone number or email used during registration.'
+    );
+    return;
+  }
+
+  const farms = JSON.parse(
+    localStorage.getItem('evie_registered_farms') || '[]'
+  );
+
+  const farm =
+    farms.find(
+      (item: any) => item.ownerId === user.id
+    ) || {
+      id: `farm_${user.id}`,
+      name: 'My Farm',
+      ownerId: user.id,
+      location: 'Uganda',
+      size: 'Not specified',
+      createdAt: user.createdAt
+    };
+
+  // Restore current session
+  localStorage.setItem(
+    'evie_user',
+    JSON.stringify(user)
+  );
+
+  localStorage.setItem(
+    'evie_farm',
+    JSON.stringify(farm)
+  );
+
+  setSuccess('Login successful!');
+
+  setTimeout(
+    () => onAuthenticated(user, null, farm),
+    500
+  );
+};
     const stored = JSON.parse(localStorage.getItem('evie_user') || 'null');
     const storedFarm = JSON.parse(localStorage.getItem('evie_farm') || 'null');
 
