@@ -106,7 +106,8 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
   n: string,
   e: string,
   fn: string,
-  fl: string
+  fl: string,
+  password: string
 ) => {
   const farmId = `farm_${userId}`;
 
@@ -115,6 +116,7 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
     email: e ? e.trim().toLowerCase() : '',
     phone: p.trim(),
     fullName: n,
+    password,
     farmIds: [farmId],
     createdAt: new Date().toISOString()
   };
@@ -169,22 +171,7 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
   return { user, farm };
 };
 
-    const farm = {
-      id: farmId,
-      name: fn || 'My Farm',
-      ownerId: userId,
-      location: fl || 'Uganda',
-      size: 'Not specified',
-      createdAt: new Date().toISOString()
-    };
-
-    localStorage.setItem('evie_user', JSON.stringify(user));
-    localStorage.setItem('evie_farm', JSON.stringify(farm));
-
-    return { user, farm };
-  };
-
-  const handleLogin = (e: React.FormEvent) => {
+const handleLogin = (e: React.FormEvent) => {
   e.preventDefault();
 
   setError('');
@@ -195,11 +182,8 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
     return;
   }
 
-  const loginValue =
-    loginPhone.trim().toLowerCase();
-
-  const normalizedPhone =
-    loginPhone.replace(/\s+/g, '');
+  const loginValue = loginPhone.trim().toLowerCase();
+  const normalizedPhone = loginPhone.replace(/\s+/g, '');
 
   const accounts = JSON.parse(
     localStorage.getItem('evie_accounts') || '[]'
@@ -225,6 +209,11 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
     return;
   }
 
+  if (user.password && user.password !== loginPass) {
+    setError('Incorrect password');
+    return;
+  }
+
   const farms = JSON.parse(
     localStorage.getItem('evie_registered_farms') || '[]'
   );
@@ -241,7 +230,6 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
       createdAt: user.createdAt
     };
 
-  // Restore current session
   localStorage.setItem(
     'evie_user',
     JSON.stringify(user)
@@ -259,71 +247,145 @@ function Auth({ onAuthenticated }: { onAuthenticated: (user: any, sub: any, farm
     500
   );
 };
-    const stored = JSON.parse(localStorage.getItem('evie_user') || 'null');
-    const storedFarm = JSON.parse(localStorage.getItem('evie_farm') || 'null');
 
-    const isEmailLogin = loginPhone.includes('@');
-    const normalizedLogin = loginPhone.toLowerCase().trim();
+const handleRegister = (e: React.FormEvent) => {
+  e.preventDefault();
 
-    const userId =
-      stored?.id ||
-      `user_${isEmailLogin ? normalizedLogin : loginPhone.replace(/\s+/g, '')}`;
+  setError('');
+  setSuccess('');
 
-    const user = stored || {
-      id: userId,
-      phone: isEmailLogin ? '' : loginPhone,
-      fullName: isEmailLogin ? loginPhone.split('@')[0] : loginPhone,
-      email: isEmailLogin ? normalizedLogin : '',
-      createdAt: new Date().toISOString()
-    };
+  if (!name || !phone || !pass || !farmName || !farmLoc) {
+    setError('Please fill in all required fields');
+    return;
+  }
 
-    const farm = storedFarm || {
-      id: `farm_${userId}`,
-      name: 'My Farm',
-      ownerId: userId,
-      location: 'Uganda',
-      size: 'Not specified',
-      createdAt: new Date().toISOString()
-    };
+  if (pass !== pass2) {
+    setError('Passwords do not match');
+    return;
+  }
 
-    localStorage.setItem('evie_user', JSON.stringify(user));
-    localStorage.setItem('evie_farm', JSON.stringify(farm));
+  if (pass.length < 6) {
+    setError('Password must be at least 6 characters');
+    return;
+  }
 
-    setSuccess('Login successful!');
-    setTimeout(() => onAuthenticated(user, null, farm), 500);
+  const accounts = JSON.parse(
+    localStorage.getItem('evie_accounts') || '[]'
+  );
+
+  const normalizedPhone = phone.replace(/\s+/g, '');
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const alreadyExists = accounts.some((item: any) => {
+    const savedPhone =
+      (item.phone || '').replace(/\s+/g, '');
+
+    const savedEmail =
+      (item.email || '').trim().toLowerCase();
+
+    return (
+      savedPhone === normalizedPhone ||
+      (normalizedEmail &&
+        savedEmail === normalizedEmail)
+    );
+  });
+
+  if (alreadyExists) {
+    setError(
+      'An account with this phone number or email already exists.'
+    );
+    return;
+  }
+
+  const userId = `user_${Date.now()}`;
+
+  const { user, farm } = makeSession(
+    userId,
+    phone,
+    name,
+    email,
+    farmName,
+    farmLoc,
+    pass
+  );
+
+  setSuccess(
+    'Account created! Your 7-day free trial has started!'
+  );
+
+  setTimeout(
+    () => onAuthenticated(user, null, farm),
+    1500
+  );
+};
+
+const handleReset = (e: React.FormEvent) => {
+  e.preventDefault();
+
+  setError('');
+  setSuccess('');
+
+  if (!resetPhone) {
+    setError('Please enter your phone number');
+    return;
+  }
+
+  if (!newPass || !newPass2) {
+    setError('Please enter a new password');
+    return;
+  }
+
+  if (newPass !== newPass2) {
+    setError('Passwords do not match');
+    return;
+  }
+
+  if (newPass.length < 6) {
+    setError('Password must be at least 6 characters');
+    return;
+  }
+
+  const accounts = JSON.parse(
+    localStorage.getItem('evie_accounts') || '[]'
+  );
+
+  const normalizedPhone =
+    resetPhone.replace(/\s+/g, '');
+
+  const index = accounts.findIndex(
+    (item: any) =>
+      (item.phone || '').replace(/\s+/g, '') ===
+      normalizedPhone
+  );
+
+  if (index === -1) {
+    setError('Account not found on this device.');
+    return;
+  }
+
+  accounts[index] = {
+    ...accounts[index],
+    password: newPass
   };
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !phone || !pass || !farmName || !farmLoc) { setError('Please fill in all required fields'); return; }
-    if (pass !== pass2) { setError('Passwords do not match'); return; }
-    if (pass.length < 6) { setError('Password must be at least 6 characters'); return; }
-    const userId = `user_${Date.now()}`;
-    const { user, farm } = makeSession(userId, phone, name, email, farmName, farmLoc);
-    setSuccess('Account created! Your 7-day free trial has started!');
-    setTimeout(() => onAuthenticated(user, null, farm), 1500);
-  };
+  localStorage.setItem(
+    'evie_accounts',
+    JSON.stringify(accounts)
+  );
 
-  const handleReset = (e: React.FormEvent) => {
-    e.preventDefault();
+  setSuccess(
+    'Password reset successfully! You can now login.'
+  );
+
+  setTimeout(() => {
+    setMode('login');
+    setSuccess('');
     setError('');
-    if (!resetPhone) { setError('Please enter your phone number'); return; }
-    if (!newPass || !newPass2) { setError('Please enter a new password'); return; }
-    if (newPass !== newPass2) { setError('Passwords do not match'); return; }
-    if (newPass.length < 6) { setError('Password must be at least 6 characters'); return; }
-    const stored = JSON.parse(localStorage.getItem('evie_user') || 'null');
-    if (stored && (stored.phone === resetPhone || stored.phone?.includes(resetPhone.replace(/\s+/g,'')))) {
-      stored.password = newPass;
-      localStorage.setItem('evie_user', JSON.stringify(stored));
-      setSuccess('Password reset successfully! You can now login.');
-      setTimeout(() => { setMode('login'); setSuccess(''); setError(''); setResetPhone(''); setNewPass(''); setNewPass2(''); }, 2500);
-    } else {
-      const userId = `user_${resetPhone.replace(/\s+/g,'')}`;
-      const { user, farm } = makeSession(userId, resetPhone, resetPhone, '', 'My Farm', 'Uganda');
-      setSuccess('Account recovered! Redirecting...');
-      setTimeout(() => onAuthenticated(user, null, farm), 1500);
-    }
-  };
+    setResetPhone('');
+    setNewPass('');
+    setNewPass2('');
+  }, 1500);
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 flex items-center justify-center p-4">
