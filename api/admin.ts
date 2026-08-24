@@ -12,9 +12,9 @@ function isAuthorized(req: any) {
   );
 }
 
-function addTwoYears(date: Date) {
+function addOneYear(date: Date) {
   const result = new Date(date);
-  result.setFullYear(result.getFullYear() + 2);
+  result.setFullYear(result.getFullYear() + 1);
   return result;
 }
 
@@ -73,7 +73,7 @@ export default async function handler(req: any, res: any) {
       const now = new Date();
 
       if (action === 'activate') {
-        const endDate = addTwoYears(now);
+        const endDate = addOneYear(now);
 
         await sql`
           INSERT INTO evie_licenses (
@@ -142,7 +142,7 @@ export default async function handler(req: any, res: any) {
             ? currentEnd
             : now;
 
-        const newEndDate = addTwoYears(renewalStart);
+        const newEndDate = addOneYear(renewalStart);
 
         await sql`
           INSERT INTO evie_licenses (
