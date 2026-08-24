@@ -18,7 +18,7 @@ interface PaymentPageProps {
   onSuccess: () => void;
 }
 
-const ACCESS_FEE = 200000;
+const ACCESS_FEE = 50000;
 const MTN_NUMBER = '0782016339';
 const AIRTEL_NUMBER = '0704296938';
 
@@ -114,7 +114,7 @@ export function PaymentPage({
   };
 
   const whatsappMessage = encodeURIComponent(
-    `Hello EVIE. I have paid UGX 200,000 for 2 years access.\n\nName: ${userFullName || ''}\nPhone: ${paymentPhone || ''}\nNetwork: ${selectedNetwork}\nTransaction Reference: ${transactionRef || ''}\n\nPlease verify my payment and activate my account.`
+    `Hello EVIE. I have paid UGX 50,000 for 1 year access.\n\nName: ${userFullName || ''}\nPhone: ${paymentPhone || ''}\nNetwork: ${selectedNetwork}\nTransaction Reference: ${transactionRef || ''}\n\nPlease verify my payment and activate my account.`
   );
   const whatsappUrl = `https://wa.me/256782016339?text=${whatsappMessage}`;
 
@@ -133,13 +133,13 @@ export function PaymentPage({
                 <Clock className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
                 <div>
                   <h3 className="font-bold text-yellow-900 mb-1">Awaiting Owner Activation</h3>
-                  <p className="text-yellow-800 text-sm">EVIE will verify your Mobile Money payment. Your 2-year access period starts when your account is activated.</p>
+                  <p className="text-yellow-800 text-sm">EVIE will verify your Mobile Money payment. Your 1-year access period starts when your account is activated.</p>
                 </div>
               </div>
             </div>
             <div className="bg-gray-50 rounded-xl p-5 text-left space-y-3 mb-6">
               <div className="flex justify-between"><span className="text-gray-600">Amount</span><span className="font-bold">UGX {ACCESS_FEE.toLocaleString()}</span></div>
-              <div className="flex justify-between"><span className="text-gray-600">Access period</span><span className="font-bold">2 Years</span></div>
+              <div className="flex justify-between"><span className="text-gray-600">Access period</span><span className="font-bold">1 Year</span></div>
               <div className="flex justify-between"><span className="text-gray-600">Network</span><span className="font-bold">{selectedNetwork}</span></div>
               <div className="flex justify-between gap-4"><span className="text-gray-600">Transaction Ref</span><span className="font-bold text-right">{transactionRef}</span></div>
               <div className="flex justify-between"><span className="text-gray-600">Status</span><span className="font-bold text-yellow-700">Awaiting Activation</span></div>
@@ -163,10 +163,10 @@ export function PaymentPage({
 
         <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl shadow-xl p-8 text-white mb-6">
           <p className="text-green-100 mb-2">EVIE Agribusiness Access</p>
-          <div className="mb-3"><span className="text-5xl font-bold">UGX 200,000</span></div>
-          <p className="text-xl font-semibold mb-6">2 Years Full Access</p>
+          <div className="mb-3"><span className="text-5xl font-bold">UGX 50,000</span></div>
+          <p className="text-xl font-semibold mb-6">1 Year Full Access</p>
           <div className="space-y-3">
-            {['Full farm management access','Crops and livestock management','Financial records and reports','Staff and worker management','Renewable every 2 years'].map((item) => (
+            {['Full farm management access','Crops and livestock management','Financial records and reports','Staff and worker management','Renewable every year'].map((item) => (
               <div key={item} className="flex items-center gap-3"><CheckCircle className="w-5 h-5" /><span>{item}</span></div>
             ))}
           </div>
@@ -174,7 +174,7 @@ export function PaymentPage({
 
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <h2 className="text-xl font-bold text-gray-900 mb-2">Pay by Mobile Money</h2>
-          <p className="text-gray-600 mb-6">Choose your network and send UGX 200,000 to the number shown.</p>
+          <p className="text-gray-600 mb-6">Choose your network and send UGX 50,000 to the number shown.</p>
 
           <div className="space-y-3 mb-6">
             <button onClick={() => setPaymentMethod('mtn-mobile-money')} className={`w-full p-4 border-2 rounded-xl flex items-center justify-between ${paymentMethod === 'mtn-mobile-money' ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200'}`}>
@@ -189,7 +189,7 @@ export function PaymentPage({
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-            <p className="font-semibold text-blue-900 mb-2">Send UGX 200,000 to:</p>
+            <p className="font-semibold text-blue-900 mb-2">Send UGX 50,000 to:</p>
             <div className="flex items-center justify-between">
               <div><p className="font-bold text-lg text-blue-900">{selectedNetwork}</p><p className="text-2xl font-bold text-blue-900">{selectedNumber}</p></div>
               <button onClick={() => copyNumber(selectedNumber, selectedNetwork)} className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg font-semibold text-blue-700"><Copy className="w-4 h-4" />{copied === selectedNetwork ? 'Copied' : 'Copy'}</button>
@@ -204,7 +204,7 @@ export function PaymentPage({
           {errorMessage && <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">{errorMessage}</div>}
 
           <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-6 mb-6">
-            <div className="flex gap-3"><ShieldCheck className="w-6 h-6 text-green-600 flex-shrink-0" /><div><p className="font-bold text-green-900">EVIE Owner Verification</p><p className="text-sm text-green-800">Submitting your payment does not immediately activate the account. EVIE verifies the payment first. Your 2-year access starts from the date EVIE activates your account.</p></div></div>
+            <div className="flex gap-3"><ShieldCheck className="w-6 h-6 text-green-600 flex-shrink-0" /><div><p className="font-bold text-green-900">EVIE Owner Verification</p><p className="text-sm text-green-800">Submitting your payment does not immediately activate the account. EVIE verifies the payment first. Your 1-year access starts from the date EVIE activates your account.</p></div></div>
           </div>
 
           <button onClick={handleSubmitPayment} disabled={submitting} className="w-full py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 shadow-lg disabled:opacity-50">{submitting ? 'Submitting...' : 'Submit Payment for Activation'}</button>
