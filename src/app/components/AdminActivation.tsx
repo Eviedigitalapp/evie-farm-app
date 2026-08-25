@@ -302,8 +302,8 @@ export function AdminActivation() {
 
       setMessage(
         action === 'renew'
-          ? `${payment.full_name || 'Customer'} renewed successfully for another 2 years.`
-          : `${payment.full_name || 'Customer'} activated successfully for 2 years.`
+          ? `${payment.full_name || 'Customer'} renewed successfully for another 1 year.`
+          : `${payment.full_name || 'Customer'} activated successfully for 1 year.`
       );
 
       await loadRecords();
@@ -504,7 +504,7 @@ export function AdminActivation() {
             </p>
 
             <p className="text-3xl font-bold text-blue-600 mt-1">
-              2 Years
+              1 Year
             </p>
           </div>
 
@@ -645,7 +645,7 @@ export function AdminActivation() {
                               {processingId ===
                               payment.id
                                 ? 'PROCESSING...'
-                                : 'RENEW FOR 2 YEARS'}
+                                : 'RENEW FOR 1 YEAR'}
                             </button>
                           ) : (
                             <button
@@ -667,7 +667,7 @@ export function AdminActivation() {
                               {processingId ===
                               payment.id
                                 ? 'PROCESSING...'
-                                : 'ACTIVATE FOR 2 YEARS'}
+                                : 'ACTIVATE FOR 1 YEAR'}
                             </button>
                           )}
 
