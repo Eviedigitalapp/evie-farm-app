@@ -458,6 +458,16 @@ const handleReset = (e: React.FormEvent) => {
               <button type="submit" className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold text-lg shadow-lg">Start Free Trial</button>
             </form>
           )}
+          <p className="text-xs text-gray-500 text-center leading-relaxed">
+  By creating an account, you agree to EVIE&apos;s{' '}
+  <span className="font-semibold text-green-700">
+    Terms of Use
+  </span>{' '}
+  and acknowledge the{' '}
+  <span className="font-semibold text-green-700">
+    Privacy Policy
+  </span>.
+</p>
         </div>
         <div className="text-center mt-6 text-white"><p className="text-sm">Need help? WhatsApp: <strong>+256782016339</strong></p></div>
       </div>
