@@ -1158,37 +1158,640 @@ function PeopleView({ userId }: { userId: string }) {
   );
 }
 
-function SettingsView({ user, farm }: { user: any; farm: any }) {
+function SettingsView({
+  user,
+  farm
+}: {
+  user: any;
+  farm: any;
+}) {
+  const [openHelp, setOpenHelp] = useState<
+    'guide' | 'privacy' | 'terms' | 'about' | null
+  >(null);
+
+  const toggleHelp = (
+    section: 'guide' | 'privacy' | 'terms' | 'about'
+  ) => {
+    setOpenHelp(
+      openHelp === section ? null : section
+    );
+  };
+
   return (
     <div className="space-y-6">
-      <div><h1 className="text-2xl font-bold text-gray-900">Settings</h1><p className="text-gray-600">Account and farm settings</p></div>
+
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Settings
+        </h1>
+
+        <p className="text-gray-600">
+          Account, farm, support and legal information
+        </p>
+      </div>
+
+      {/* ACCOUNT INFORMATION */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="font-bold text-lg text-gray-900 mb-4">Account Information</h2>
+        <h2 className="font-bold text-lg text-gray-900 mb-4">
+          Account Information
+        </h2>
+
         <div className="space-y-3">
-          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Name</span><span className="font-semibold">{user?.fullName||'Not set'}</span></div>
-          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Phone</span><span className="font-semibold">{user?.phone||'Not set'}</span></div>
-          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Email</span><span className="font-semibold">{user?.email||'Not set'}</span></div>
-          <div className="flex items-center justify-between py-3"><span className="text-gray-600">Member Since</span><span className="font-semibold">{user?.createdAt?new Date(user.createdAt).toLocaleDateString():'Not set'}</span></div>
+
+          <div className="flex items-center justify-between py-3 border-b border-gray-100">
+            <span className="text-gray-600">
+              Name
+            </span>
+
+            <span className="font-semibold">
+              {user?.fullName || 'Not set'}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between py-3 border-b border-gray-100">
+            <span className="text-gray-600">
+              Phone
+            </span>
+
+            <span className="font-semibold">
+              {user?.phone || 'Not set'}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between py-3 border-b border-gray-100">
+            <span className="text-gray-600">
+              Email
+            </span>
+
+            <span className="font-semibold">
+              {user?.email || 'Not set'}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between py-3">
+            <span className="text-gray-600">
+              Member Since
+            </span>
+
+            <span className="font-semibold">
+              {user?.createdAt
+                ? new Date(
+                    user.createdAt
+                  ).toLocaleDateString()
+                : 'Not set'}
+            </span>
+          </div>
+
         </div>
       </div>
+
+      {/* FARM INFORMATION */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="font-bold text-lg text-gray-900 mb-4">Farm Information</h2>
+        <h2 className="font-bold text-lg text-gray-900 mb-4">
+          Farm Information
+        </h2>
+
         <div className="space-y-3">
-          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Farm Name</span><span className="font-semibold">{farm?.name||'Not set'}</span></div>
-          <div className="flex items-center justify-between py-3 border-b border-gray-100"><span className="text-gray-600">Location</span><span className="font-semibold">{farm?.location||'Not set'}</span></div>
-          <div className="flex items-center justify-between py-3"><span className="text-gray-600">Size</span><span className="font-semibold">{farm?.size||'Not set'}</span></div>
+
+          <div className="flex items-center justify-between py-3 border-b border-gray-100">
+            <span className="text-gray-600">
+              Farm Name
+            </span>
+
+            <span className="font-semibold">
+              {farm?.name || 'Not set'}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between py-3 border-b border-gray-100">
+            <span className="text-gray-600">
+              Location
+            </span>
+
+            <span className="font-semibold">
+              {farm?.location || 'Not set'}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between py-3">
+            <span className="text-gray-600">
+              Size
+            </span>
+
+            <span className="font-semibold">
+              {farm?.size || 'Not set'}
+            </span>
+          </div>
+
         </div>
       </div>
+
+      {/* ANNUAL ACCESS */}
       <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6">
-        <h2 className="font-bold text-lg text-green-900 mb-2">Activate 1-Year Access</h2>
-<p className="text-green-800 mb-4">Send UGX 50,000 via MTN or Airtel Money to activate 1 year of full access. Renewable every year.</p>
+
+        <h2 className="font-bold text-lg text-green-900 mb-2">
+          Activate 1-Year Access
+        </h2>
+
+        <p className="text-green-800 mb-4">
+          After the 7-day free trial, EVIE access is
+          UGX 50,000 for 1 year and is renewable annually.
+        </p>
+
         <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-yellow-600" /><div><p className="font-bold">MTN Mobile Money</p><p className="text-gray-600 font-semibold">0782016339</p></div></div>
-          <div className="flex items-center gap-3 p-3 bg-white rounded-lg"><Smartphone className="w-5 h-5 text-red-600" /><div><p className="font-bold">Airtel Money</p><p className="text-gray-600 font-semibold">0704296938</p></div></div>
+
+          <div className="flex items-center gap-3 p-3 bg-white rounded-lg">
+            <Smartphone className="w-5 h-5 text-yellow-600" />
+
+            <div>
+              <p className="font-bold">
+                MTN Mobile Money
+              </p>
+
+              <p className="text-gray-600 font-semibold">
+                0782016339
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-3 bg-white rounded-lg">
+            <Smartphone className="w-5 h-5 text-red-600" />
+
+            <div>
+              <p className="font-bold">
+                Airtel Money
+              </p>
+
+              <p className="text-gray-600 font-semibold">
+                0704296938
+              </p>
+            </div>
+          </div>
+
         </div>
-        <p className="text-sm text-green-700 mb-3">After payment, submit your Mobile Money transaction reference for EVIE verification.</p>
-        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center gap-2 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors">💬 Contact EVIE on WhatsApp</a>
+
+        <p className="text-sm text-green-700 mb-3">
+          After payment, submit your Mobile Money
+          transaction reference for EVIE verification.
+        </p>
+
+        <a
+          href={WHATSAPP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full flex items-center justify-center gap-2 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 transition-colors"
+        >
+          💬 Contact EVIE on WhatsApp
+        </a>
+
       </div>
+
+      {/* HELP & LEGAL */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+
+        <h2 className="font-bold text-xl text-gray-900 mb-2">
+          Help & Legal
+        </h2>
+
+        <p className="text-gray-600 mb-5">
+          Guidance, privacy, terms and support information
+          for EVIE users.
+        </p>
+
+        <div className="space-y-3">
+
+          {/* USER GUIDE */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+
+            <button
+              type="button"
+              onClick={() =>
+                toggleHelp('guide')
+              }
+              className="w-full flex items-center justify-between p-4 text-left bg-gray-50 hover:bg-gray-100"
+            >
+              <div>
+                <p className="font-bold text-gray-900">
+                  📘 Getting Started Guide
+                </p>
+
+                <p className="text-sm text-gray-500">
+                  How to use EVIE on your farm
+                </p>
+              </div>
+
+              <span className="text-xl">
+                {openHelp === 'guide'
+                  ? '−'
+                  : '+'}
+              </span>
+            </button>
+
+            {openHelp === 'guide' && (
+              <div className="p-5 text-sm text-gray-700 space-y-4">
+
+                <div>
+                  <p className="font-bold mb-1">
+                    1. Register your farm
+                  </p>
+
+                  <p>
+                    Create your EVIE account using your
+                    name, phone number, password, farm
+                    name and location.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    2. Add Crops
+                  </p>
+
+                  <p>
+                    Record crop name, area, planting
+                    date, expected harvest date, crop
+                    status and health information.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    3. Add Livestock
+                  </p>
+
+                  <p>
+                    Record livestock type, numbers,
+                    young animals, health status and
+                    notes.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    4. Record Money
+                  </p>
+
+                  <p>
+                    Enter farm income and expenses.
+                    The Dashboard automatically
+                    calculates your monthly totals.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    5. Manage Workers
+                  </p>
+
+                  <p>
+                    Add staff and record check-in and
+                    check-out information.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    6. Review your Dashboard
+                  </p>
+
+                  <p>
+                    The Dashboard shows live totals,
+                    farm alerts and indicative health
+                    scores based on the records you
+                    enter.
+                  </p>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="font-bold text-blue-900 mb-1">
+                    Important
+                  </p>
+
+                  <p className="text-blue-800">
+                    Keep your farm records updated.
+                    EVIE alerts and scores depend on
+                    the information you enter.
+                  </p>
+                </div>
+
+              </div>
+            )}
+
+          </div>
+
+          {/* PRIVACY */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+
+            <button
+              type="button"
+              onClick={() =>
+                toggleHelp('privacy')
+              }
+              className="w-full flex items-center justify-between p-4 text-left bg-gray-50 hover:bg-gray-100"
+            >
+              <div>
+                <p className="font-bold text-gray-900">
+                  🔒 Privacy Policy
+                </p>
+
+                <p className="text-sm text-gray-500">
+                  How EVIE handles user information
+                </p>
+              </div>
+
+              <span className="text-xl">
+                {openHelp === 'privacy'
+                  ? '−'
+                  : '+'}
+              </span>
+            </button>
+
+            {openHelp === 'privacy' && (
+              <div className="p-5 text-sm text-gray-700 space-y-4">
+
+                <p>
+                  EVIE Digital Agribusiness respects
+                  the privacy of farmers and other
+                  users.
+                </p>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    Information we may handle
+                  </p>
+
+                  <p>
+                    This may include your name,
+                    phone number, email, farm name,
+                    location, crop records, livestock
+                    records, financial records,
+                    worker information and payment
+                    verification information.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    Why we use information
+                  </p>
+
+                  <p>
+                    Information is used to provide
+                    EVIE services, maintain farm
+                    records, generate farm summaries
+                    and alerts, manage subscriptions,
+                    verify payments, provide support
+                    and improve the service.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    Farmer data
+                  </p>
+
+                  <p>
+                    EVIE is designed to separate farm
+                    records by user account. Users
+                    should protect their passwords
+                    and should not share their
+                    accounts.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    Security
+                  </p>
+
+                  <p>
+                    Never give anyone your Mobile
+                    Money PIN, bank password,
+                    one-time password or other
+                    private security credentials.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    Data requests
+                  </p>
+
+                  <p>
+                    Contact EVIE support if you need
+                    help correcting or reviewing
+                    account information.
+                  </p>
+                </div>
+
+              </div>
+            )}
+
+          </div>
+
+          {/* TERMS */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+
+            <button
+              type="button"
+              onClick={() =>
+                toggleHelp('terms')
+              }
+              className="w-full flex items-center justify-between p-4 text-left bg-gray-50 hover:bg-gray-100"
+            >
+              <div>
+                <p className="font-bold text-gray-900">
+                  📄 Terms of Use
+                </p>
+
+                <p className="text-sm text-gray-500">
+                  Rules for using EVIE
+                </p>
+              </div>
+
+              <span className="text-xl">
+                {openHelp === 'terms'
+                  ? '−'
+                  : '+'}
+              </span>
+            </button>
+
+            {openHelp === 'terms' && (
+              <div className="p-5 text-sm text-gray-700 space-y-4">
+
+                <p>
+                  By using EVIE Digital Agribusiness,
+                  you agree to use the service
+                  responsibly and lawfully.
+                </p>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    Account responsibility
+                  </p>
+
+                  <p>
+                    Keep your password private and
+                    provide reasonably accurate farm
+                    information.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    Trial and annual access
+                  </p>
+
+                  <p>
+                    EVIE currently provides a
+                    7-day free trial followed by
+                    UGX 50,000 for one year of
+                    access, renewable annually.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    Farm decisions
+                  </p>
+
+                  <p>
+                    EVIE is a farm record-keeping
+                    and management-support tool.
+                    Farmers remain responsible for
+                    their own farming, financial,
+                    veterinary, employment and
+                    commercial decisions.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    Alerts and scores
+                  </p>
+
+                  <p>
+                    EVIE alerts and health scores are
+                    indicators based on available
+                    records. They are not professional
+                    veterinary, agronomic, financial
+                    or legal advice.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-bold mb-1">
+                    No guaranteed farm outcome
+                  </p>
+
+                  <p>
+                    EVIE cannot guarantee crop
+                    yields, profits, animal health,
+                    market prices, certification,
+                    financing or other farming
+                    outcomes.
+                  </p>
+                </div>
+
+              </div>
+            )}
+
+          </div>
+
+          {/* ABOUT */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+
+            <button
+              type="button"
+              onClick={() =>
+                toggleHelp('about')
+              }
+              className="w-full flex items-center justify-between p-4 text-left bg-gray-50 hover:bg-gray-100"
+            >
+              <div>
+                <p className="font-bold text-gray-900">
+                  🌱 About EVIE
+                </p>
+
+                <p className="text-sm text-gray-500">
+                  EVIE Digital Agribusiness
+                </p>
+              </div>
+
+              <span className="text-xl">
+                {openHelp === 'about'
+                  ? '−'
+                  : '+'}
+              </span>
+            </button>
+
+            {openHelp === 'about' && (
+              <div className="p-5 text-sm text-gray-700 space-y-3">
+
+                <p>
+                  EVIE Digital Agribusiness is a
+                  digital farm-management platform
+                  designed to help farmers manage
+                  farming as a business.
+                </p>
+
+                <p>
+                  EVIE supports crop records,
+                  livestock records, farm finances,
+                  workers, farm alerts and farm
+                  performance monitoring.
+                </p>
+
+                <p className="font-semibold">
+                  Current access plan:
+                  7-day free trial, then
+                  UGX 50,000 per year.
+                </p>
+
+                <p>
+                  Version: EVIE Digital Agribusiness
+                  v1.0
+                </p>
+
+              </div>
+            )}
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* SUPPORT */}
+      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+
+        <h2 className="font-bold text-lg text-blue-900 mb-2">
+          Need Help?
+        </h2>
+
+        <p className="text-blue-800 mb-4">
+          Contact EVIE support if you have a problem
+          with registration, payment, activation or
+          using your farm records.
+        </p>
+
+        <a
+          href="https://wa.me/256782016339?text=Hello%20EVIE%20Support.%20I%20need%20help%20with%20the%20EVIE%20Digital%20Agribusiness%20App."
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full flex items-center justify-center py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700"
+        >
+          💬 WhatsApp EVIE Support
+        </a>
+
+        <p className="text-xs text-blue-700 mt-3">
+          EVIE support will never ask for your
+          Mobile Money PIN, bank password,
+          one-time password or private security key.
+        </p>
+
+      </div>
+
     </div>
   );
 }
