@@ -18,7 +18,7 @@ export default async function handler(req: any, res: any) {
       phone,
       paymentNetwork,
       transactionRef,
-      amount = 200000,
+      amount = 50000,
       currency = 'UGX'
     } = req.body || {};
 
