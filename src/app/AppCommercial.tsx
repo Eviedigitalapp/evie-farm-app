@@ -559,56 +559,511 @@ function PaymentBanner({ user, onPay }: { user: any; onPay: () => void }) {
   );
 }
 
-function Dashboard({ onNavigate }: { onNavigate: (view: View) => void }) {
+function Dashboard({
+  onNavigate
+}: {
+  onNavigate: (view: View) => void;
+}) {
+  const crops = JSON.parse(
+    localStorage.getItem('evie_crops') || '[]'
+  );
+
+  const livestock = JSON.parse(
+    localStorage.getItem('evie_livestock') || '[]'
+  );
+
+  const transactions = JSON.parse(
+    localStorage.getItem('evie_transactions') || '[]'
+  );
+
+  const staff = JSON.parse(
+    localStorage.getItem('evie_staff') || '[]'
+  );
+
+  const today = new Date();
+
+  const currentMonth =
+    today.toISOString().slice(0, 7);
+
+  const monthlyTransactions =
+    transactions.filter((transaction: any) =>
+      String(transaction.date || '').startsWith(
+        currentMonth
+      )
+    );
+
+  const monthlyIncome =
+    monthlyTransactions
+      .filter(
+        (transaction: any) =>
+          transaction.type === 'income'
+      )
+      .reduce(
+        (sum: number, transaction: any) =>
+          sum + Number(transaction.amount || 0),
+        0
+      );
+
+  const monthlyExpenses =
+    monthlyTransactions
+      .filter(
+        (transaction: any) =>
+          transaction.type === 'expense'
+      )
+      .reduce(
+        (sum: number, transaction: any) =>
+          sum + Number(transaction.amount || 0),
+        0
+      );
+
+  const netProfit =
+    monthlyIncome - monthlyExpenses;
+
+  const totalLivestock =
+    livestock.reduce(
+      (sum: number, animal: any) =>
+        sum +
+        Number(animal.count || 0) +
+        Number(animal.youngOnes || 0),
+      0
+    );
+
+  const readyCrops =
+    crops.filter((crop: any) =>
+      ['Ready', 'Harvesting'].includes(
+        crop.status
+      )
+    ).length;
+
+  const checkedInStaff =
+    staff.filter(
+      (person: any) => person.checkedIn
+    ).length;
+
+  const formatMoney = (amount: number) => {
+    if (Math.abs(amount) >= 1000000) {
+      return `UGX ${(amount / 1000000).toFixed(1)}M`;
+    }
+
+    if (Math.abs(amount) >= 1000) {
+      return `UGX ${(amount / 1000).toFixed(0)}K`;
+    }
+
+    return `UGX ${amount.toLocaleString()}`;
+  };
+
   const stats = [
-    { label: 'Total Crops', value: '7', icon: Sprout, color: 'bg-green-100 text-green-700', sub: '2 ready for harvest', view: 'crops' as View },
-    { label: 'Livestock', value: '244', icon: Beef, color: 'bg-blue-100 text-blue-700', sub: '6 groups', view: 'livestock' as View },
-    { label: 'Monthly Income', value: 'UGX 1.0M', icon: TrendingUp, color: 'bg-emerald-100 text-emerald-700', sub: 'This month', view: 'money' as View },
-    { label: 'Monthly Expenses', value: 'UGX 515K', icon: TrendingDown, color: 'bg-red-100 text-red-700', sub: 'This month', view: 'money' as View },
-    { label: 'Net Profit', value: 'UGX 492K', icon: DollarSign, color: 'bg-yellow-100 text-yellow-700', sub: '48.9% margin', view: 'money' as View },
-    { label: 'Pending Tasks', value: '5', icon: AlertCircle, color: 'bg-orange-100 text-orange-700', sub: '3 overdue', view: 'people' as View },
+    {
+      label: 'Total Crops',
+      value: String(crops.length),
+      icon: Sprout,
+      color: 'bg-green-100 text-green-700',
+      sub:
+        crops.length === 0
+          ? 'Add your first crop'
+          : `${readyCrops} ready / harvesting`,
+      view: 'crops' as View
+    },
+    {
+      label: 'Livestock',
+      value: String(totalLivestock),
+      icon: Beef,
+      color: 'bg-blue-100 text-blue-700',
+      sub:
+        livestock.length === 0
+          ? 'Add livestock records'
+          : `${livestock.length} group${
+              livestock.length === 1 ? '' : 's'
+            }`,
+      view: 'livestock' as View
+    },
+    {
+      label: 'Monthly Income',
+      value: formatMoney(monthlyIncome),
+      icon: TrendingUp,
+      color: 'bg-emerald-100 text-emerald-700',
+      sub: 'This month',
+      view: 'money' as View
+    },
+    {
+      label: 'Monthly Expenses',
+      value: formatMoney(monthlyExpenses),
+      icon: TrendingDown,
+      color: 'bg-red-100 text-red-700',
+      sub: 'This month',
+      view: 'money' as View
+    },
+    {
+      label: 'Net Profit',
+      value: formatMoney(netProfit),
+      icon: DollarSign,
+      color:
+        netProfit >= 0
+          ? 'bg-yellow-100 text-yellow-700'
+          : 'bg-red-100 text-red-700',
+      sub:
+        monthlyIncome === 0 &&
+        monthlyExpenses === 0
+          ? 'No transactions this month'
+          : netProfit >= 0
+          ? 'Positive balance'
+          : 'Expenses exceed income',
+      view: 'money' as View
+    },
+    {
+      label: 'Staff Present',
+      value: String(checkedInStaff),
+      icon: Users,
+      color: 'bg-purple-100 text-purple-700',
+      sub:
+        staff.length === 0
+          ? 'No staff records'
+          : `${checkedInStaff} of ${staff.length} checked in`,
+      view: 'people' as View
+    }
   ];
-  const alerts = [
-    { msg: 'Heavy rains expected — check drainage', level: 'high' },
-    { msg: 'Coffee berry disease spotted — spray fungicide urgently', level: 'high' },
-    { msg: 'Pig vaccination due next week', level: 'medium' },
-    { msg: 'Feed stock running low — budget UGX 150,000', level: 'medium' },
+
+  type AlertItem = {
+    msg: string;
+    level: 'high' | 'medium' | 'info';
+    view: View;
+  };
+
+  const alerts: AlertItem[] = [];
+
+  crops.forEach((crop: any) => {
+    if (
+      typeof crop.health === 'number' &&
+      crop.health < 70
+    ) {
+      alerts.push({
+        msg: `${crop.name}: crop health is ${crop.health}%. Review the crop record and take appropriate action.`,
+        level: 'high',
+        view: 'crops'
+      });
+    }
+
+    if (crop.expectedHarvest) {
+      const harvestDate =
+        new Date(crop.expectedHarvest);
+
+      if (!Number.isNaN(harvestDate.getTime())) {
+        const daysToHarvest = Math.ceil(
+          (harvestDate.getTime() -
+            today.getTime()) /
+            86400000
+        );
+
+        if (
+          daysToHarvest >= 0 &&
+          daysToHarvest <= 14
+        ) {
+          alerts.push({
+            msg: `${crop.name}: expected harvest in ${daysToHarvest} day${
+              daysToHarvest === 1 ? '' : 's'
+            }. Prepare harvesting and market arrangements.`,
+            level: 'medium',
+            view: 'crops'
+          });
+        }
+
+        if (
+          daysToHarvest < 0 &&
+          crop.status !== 'Harvesting'
+        ) {
+          alerts.push({
+            msg: `${crop.name}: expected harvest date has passed. Update the crop status or harvest record.`,
+            level: 'medium',
+            view: 'crops'
+          });
+        }
+      }
+    }
+  });
+
+  livestock.forEach((animal: any) => {
+    if (
+      animal.health === 'Poor' ||
+      animal.health === 'Fair'
+    ) {
+      alerts.push({
+        msg: `${animal.type}: health status is ${animal.health}. Review the livestock and record any treatment or action taken.`,
+        level:
+          animal.health === 'Poor'
+            ? 'high'
+            : 'medium',
+        view: 'livestock'
+      });
+    }
+  });
+
+  if (
+    monthlyExpenses > monthlyIncome &&
+    monthlyExpenses > 0
+  ) {
+    alerts.push({
+      msg: `This month's expenses exceed income by ${formatMoney(
+        monthlyExpenses - monthlyIncome
+      )}. Review your farm spending and expected income.`,
+      level: 'high',
+      view: 'money'
+    });
+  }
+
+  if (
+    staff.length > 0 &&
+    checkedInStaff === 0
+  ) {
+    alerts.push({
+      msg: 'No staff members are currently checked in. Update attendance if work has started today.',
+      level: 'info',
+      view: 'people'
+    });
+  }
+
+  if (
+    crops.length === 0 &&
+    livestock.length === 0 &&
+    transactions.length === 0
+  ) {
+    alerts.push({
+      msg: 'Welcome to EVIE. Add your crops, livestock and financial records so EVIE can begin monitoring your farm.',
+      level: 'info',
+      view: 'crops'
+    });
+  }
+
+  if (alerts.length === 0) {
+    alerts.push({
+      msg: 'No urgent issues detected from your current farm records.',
+      level: 'info',
+      view: 'dashboard'
+    });
+  }
+
+  const cropHealthValues =
+    crops
+      .map((crop: any) =>
+        Number(crop.health)
+      )
+      .filter(
+        (value: number) =>
+          !Number.isNaN(value)
+      );
+
+  const cropHealth =
+    cropHealthValues.length > 0
+      ? Math.round(
+          cropHealthValues.reduce(
+            (sum: number, value: number) =>
+              sum + value,
+            0
+          ) / cropHealthValues.length
+        )
+      : null;
+
+  const livestockHealthValues =
+    livestock.map((animal: any) => {
+      switch (animal.health) {
+        case 'Excellent':
+          return 100;
+        case 'Good':
+          return 85;
+        case 'Fair':
+          return 60;
+        case 'Poor':
+          return 35;
+        default:
+          return 75;
+      }
+    });
+
+  const livestockHealth =
+    livestockHealthValues.length > 0
+      ? Math.round(
+          livestockHealthValues.reduce(
+            (sum: number, value: number) =>
+              sum + value,
+            0
+          ) / livestockHealthValues.length
+        )
+      : null;
+
+  const availableScores = [
+    cropHealth,
+    livestockHealth
+  ].filter(
+    (score): score is number =>
+      score !== null
+  );
+
+  const overallHealth =
+    availableScores.length > 0
+      ? Math.round(
+          availableScores.reduce(
+            (sum, value) => sum + value,
+            0
+          ) / availableScores.length
+        )
+      : null;
+
+  const healthScores = [
+    {
+      label: 'Crops',
+      score: cropHealth,
+      color: 'bg-green-600',
+      view: 'crops' as View
+    },
+    {
+      label: 'Livestock',
+      score: livestockHealth,
+      color: 'bg-blue-600',
+      view: 'livestock' as View
+    },
+    {
+      label: 'Overall',
+      score: overallHealth,
+      color: 'bg-purple-600',
+      view: 'dashboard' as View
+    }
   ];
+
   return (
     <div className="space-y-6">
-      <div><h1 className="text-2xl font-bold text-gray-900">Farm Overview</h1><p className="text-gray-600">Tap any card to view details.</p></div>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Farm Overview
+        </h1>
+
+        <p className="text-gray-600">
+          Live summary based on your farm records.
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        {stats.map(s => (
-          <button key={s.label} onClick={() => onNavigate(s.view)} className="bg-white rounded-xl border border-gray-200 p-5 text-left hover:shadow-md hover:border-green-300 transition-all active:scale-95">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${s.color}`}><s.icon className="w-5 h-5" /></div>
-            <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-            <p className="font-semibold text-gray-700">{s.label}</p>
-            <p className="text-sm text-gray-500">{s.sub}</p>
-            <p className="text-xs text-green-600 mt-2 font-semibold">Tap to view →</p>
+        {stats.map((stat) => (
+          <button
+            key={stat.label}
+            onClick={() =>
+              onNavigate(stat.view)
+            }
+            className="bg-white rounded-xl border border-gray-200 p-5 text-left hover:shadow-md hover:border-green-300 transition-all active:scale-95"
+          >
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${stat.color}`}
+            >
+              <stat.icon className="w-5 h-5" />
+            </div>
+
+            <p className="text-2xl font-bold text-gray-900">
+              {stat.value}
+            </p>
+
+            <p className="font-semibold text-gray-700">
+              {stat.label}
+            </p>
+
+            <p className="text-sm text-gray-500">
+              {stat.sub}
+            </p>
+
+            <p className="text-xs text-green-600 mt-2 font-semibold">
+              Tap to view →
+            </p>
           </button>
         ))}
       </div>
+
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2"><AlertCircle className="w-5 h-5 text-orange-500" />Alerts</h2>
+        <h2 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
+          <AlertCircle className="w-5 h-5 text-orange-500" />
+          Farm Alerts
+        </h2>
+
+        <p className="text-sm text-gray-500 mb-4">
+          Alerts are generated from the records currently saved in EVIE.
+        </p>
+
         <div className="space-y-3">
-          {alerts.map((a, i) => (
-            <div key={i} className={`flex items-start gap-3 p-3 rounded-lg ${a.level==='high'?'bg-red-50 border border-red-200':'bg-orange-50 border border-orange-200'}`}>
-              <AlertCircle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${a.level==='high'?'text-red-500':'text-orange-500'}`} />
-              <p className="text-gray-700 text-sm">{a.msg}</p>
-            </div>
-          ))}
+          {alerts.slice(0, 6).map(
+            (alert, index) => (
+              <button
+                key={`${alert.msg}-${index}`}
+                onClick={() =>
+                  onNavigate(alert.view)
+                }
+                className={`w-full flex items-start gap-3 p-3 rounded-lg text-left ${
+                  alert.level === 'high'
+                    ? 'bg-red-50 border border-red-200'
+                    : alert.level ===
+                      'medium'
+                    ? 'bg-orange-50 border border-orange-200'
+                    : 'bg-blue-50 border border-blue-200'
+                }`}
+              >
+                <AlertCircle
+                  className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+                    alert.level === 'high'
+                      ? 'text-red-500'
+                      : alert.level ===
+                        'medium'
+                      ? 'text-orange-500'
+                      : 'text-blue-500'
+                  }`}
+                />
+
+                <p className="text-gray-700 text-sm">
+                  {alert.msg}
+                </p>
+              </button>
+            )
+          )}
         </div>
       </div>
+
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2"><Heart className="w-5 h-5 text-pink-500" />Farm Health Score</h2>
+        <h2 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
+          <Heart className="w-5 h-5 text-pink-500" />
+          Farm Health Score
+        </h2>
+
+        <p className="text-sm text-gray-500 mb-4">
+          Indicative score based on the health information recorded by the farmer.
+        </p>
+
         <div className="grid grid-cols-3 gap-4">
-          {[{label:'Crops',score:90,color:'bg-green-600',view:'crops' as View},{label:'Livestock',score:94,color:'bg-blue-600',view:'livestock' as View},{label:'Overall',score:92,color:'bg-purple-600',view:'dashboard' as View}].map(h => (
-            <button key={h.label} onClick={() => onNavigate(h.view)} className="text-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors active:scale-95">
-              <p className="text-3xl font-bold text-gray-900">{h.score}%</p>
-              <p className="font-semibold text-gray-700">{h.label}</p>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-2"><div className={`h-2 rounded-full ${h.color}`} style={{width:`${h.score}%`}} /></div>
-            </button>
-          ))}
+          {healthScores.map(
+            (health) => (
+              <button
+                key={health.label}
+                onClick={() =>
+                  onNavigate(health.view)
+                }
+                className="text-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors active:scale-95"
+              >
+                <p className="text-3xl font-bold text-gray-900">
+                  {health.score === null
+                    ? '—'
+                    : `${health.score}%`}
+                </p>
+
+                <p className="font-semibold text-gray-700">
+                  {health.label}
+                </p>
+
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div
+                    className={`h-2 rounded-full ${health.color}`}
+                    style={{
+                      width: `${
+                        health.score || 0
+                      }%`
+                    }}
+                  />
+                </div>
+              </button>
+            )
+          )}
         </div>
       </div>
     </div>
