@@ -560,95 +560,74 @@ function PaymentBanner({ user, onPay }: { user: any; onPay: () => void }) {
 }
 
 function Dashboard({
-  onNavigate
+  onNavigate,
+  userId
 }: {
   onNavigate: (view: View) => void;
+  userId: string;
 }) {
+  const key = (name: string) => `${name}_${userId}`;
+
   const crops = JSON.parse(
-    localStorage.getItem('evie_crops') || '[]'
+    localStorage.getItem(key('evie_crops')) || '[]'
   );
 
   const livestock = JSON.parse(
-    localStorage.getItem('evie_livestock') || '[]'
+    localStorage.getItem(key('evie_livestock')) || '[]'
   );
 
   const transactions = JSON.parse(
-    localStorage.getItem('evie_transactions') || '[]'
+    localStorage.getItem(key('evie_transactions')) || '[]'
   );
 
   const staff = JSON.parse(
-    localStorage.getItem('evie_staff') || '[]'
+    localStorage.getItem(key('evie_staff')) || '[]'
   );
 
   const today = new Date();
+  const currentMonth = today.toISOString().slice(0, 7);
 
-  const currentMonth =
-    today.toISOString().slice(0, 7);
+  const monthlyTransactions = transactions.filter((transaction: any) =>
+    String(transaction.date || '').startsWith(currentMonth)
+  );
 
-  const monthlyTransactions =
-    transactions.filter((transaction: any) =>
-      String(transaction.date || '').startsWith(
-        currentMonth
-      )
-    );
-
-  const monthlyIncome =
-    monthlyTransactions
-      .filter(
-        (transaction: any) =>
-          transaction.type === 'income'
-      )
-      .reduce(
-        (sum: number, transaction: any) =>
-          sum + Number(transaction.amount || 0),
-        0
-      );
-
-  const monthlyExpenses =
-    monthlyTransactions
-      .filter(
-        (transaction: any) =>
-          transaction.type === 'expense'
-      )
-      .reduce(
-        (sum: number, transaction: any) =>
-          sum + Number(transaction.amount || 0),
-        0
-      );
-
-  const netProfit =
-    monthlyIncome - monthlyExpenses;
-
-  const totalLivestock =
-    livestock.reduce(
-      (sum: number, animal: any) =>
-        sum +
-        Number(animal.count || 0) +
-        Number(animal.youngOnes || 0),
+  const monthlyIncome = monthlyTransactions
+    .filter((transaction: any) => transaction.type === 'income')
+    .reduce(
+      (sum: number, transaction: any) =>
+        sum + Number(transaction.amount || 0),
       0
     );
 
-  const readyCrops =
-    crops.filter((crop: any) =>
-      ['Ready', 'Harvesting'].includes(
-        crop.status
-      )
-    ).length;
+  const monthlyExpenses = monthlyTransactions
+    .filter((transaction: any) => transaction.type === 'expense')
+    .reduce(
+      (sum: number, transaction: any) =>
+        sum + Number(transaction.amount || 0),
+      0
+    );
 
-  const checkedInStaff =
-    staff.filter(
-      (person: any) => person.checkedIn
-    ).length;
+  const netProfit = monthlyIncome - monthlyExpenses;
+
+  const totalLivestock = livestock.reduce(
+    (sum: number, animal: any) =>
+      sum + Number(animal.count || 0) + Number(animal.youngOnes || 0),
+    0
+  );
+
+  const readyCrops = crops.filter((crop: any) =>
+    ['Ready', 'Harvesting'].includes(crop.status)
+  ).length;
+
+  const checkedInStaff = staff.filter((person: any) => person.checkedIn).length;
 
   const formatMoney = (amount: number) => {
     if (Math.abs(amount) >= 1000000) {
       return `UGX ${(amount / 1000000).toFixed(1)}M`;
     }
-
     if (Math.abs(amount) >= 1000) {
       return `UGX ${(amount / 1000).toFixed(0)}K`;
     }
-
     return `UGX ${amount.toLocaleString()}`;
   };
 
@@ -658,10 +637,7 @@ function Dashboard({
       value: String(crops.length),
       icon: Sprout,
       color: 'bg-green-100 text-green-700',
-      sub:
-        crops.length === 0
-          ? 'Add your first crop'
-          : `${readyCrops} ready / harvesting`,
+      sub: crops.length === 0 ? 'Add your first crop' : `${readyCrops} ready / harvesting`,
       view: 'crops' as View
     },
     {
@@ -669,12 +645,7 @@ function Dashboard({
       value: String(totalLivestock),
       icon: Beef,
       color: 'bg-blue-100 text-blue-700',
-      sub:
-        livestock.length === 0
-          ? 'Add livestock records'
-          : `${livestock.length} group${
-              livestock.length === 1 ? '' : 's'
-            }`,
+      sub: livestock.length === 0 ? 'Add livestock records' : `${livestock.length} group${livestock.length === 1 ? '' : 's'}`,
       view: 'livestock' as View
     },
     {
@@ -697,13 +668,9 @@ function Dashboard({
       label: 'Net Profit',
       value: formatMoney(netProfit),
       icon: DollarSign,
-      color:
-        netProfit >= 0
-          ? 'bg-yellow-100 text-yellow-700'
-          : 'bg-red-100 text-red-700',
+      color: netProfit >= 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700',
       sub:
-        monthlyIncome === 0 &&
-        monthlyExpenses === 0
+        monthlyIncome === 0 && monthlyExpenses === 0
           ? 'No transactions this month'
           : netProfit >= 0
           ? 'Positive balance'
@@ -715,10 +682,7 @@ function Dashboard({
       value: String(checkedInStaff),
       icon: Users,
       color: 'bg-purple-100 text-purple-700',
-      sub:
-        staff.length === 0
-          ? 'No staff records'
-          : `${checkedInStaff} of ${staff.length} checked in`,
+      sub: staff.length === 0 ? 'No staff records' : `${checkedInStaff} of ${staff.length} checked in`,
       view: 'people' as View
     }
   ];
@@ -732,10 +696,7 @@ function Dashboard({
   const alerts: AlertItem[] = [];
 
   crops.forEach((crop: any) => {
-    if (
-      typeof crop.health === 'number' &&
-      crop.health < 70
-    ) {
+    if (typeof crop.health === 'number' && crop.health < 70) {
       alerts.push({
         msg: `${crop.name}: crop health is ${crop.health}%. Review the crop record and take appropriate action.`,
         level: 'high',
@@ -744,33 +705,19 @@ function Dashboard({
     }
 
     if (crop.expectedHarvest) {
-      const harvestDate =
-        new Date(crop.expectedHarvest);
-
+      const harvestDate = new Date(crop.expectedHarvest);
       if (!Number.isNaN(harvestDate.getTime())) {
-        const daysToHarvest = Math.ceil(
-          (harvestDate.getTime() -
-            today.getTime()) /
-            86400000
-        );
+        const daysToHarvest = Math.ceil((harvestDate.getTime() - today.getTime()) / 86400000);
 
-        if (
-          daysToHarvest >= 0 &&
-          daysToHarvest <= 14
-        ) {
+        if (daysToHarvest >= 0 && daysToHarvest <= 14) {
           alerts.push({
-            msg: `${crop.name}: expected harvest in ${daysToHarvest} day${
-              daysToHarvest === 1 ? '' : 's'
-            }. Prepare harvesting and market arrangements.`,
+            msg: `${crop.name}: expected harvest in ${daysToHarvest} day${daysToHarvest === 1 ? '' : 's'}. Prepare harvesting and market arrangements.`,
             level: 'medium',
             view: 'crops'
           });
         }
 
-        if (
-          daysToHarvest < 0 &&
-          crop.status !== 'Harvesting'
-        ) {
+        if (daysToHarvest < 0 && crop.status !== 'Harvesting') {
           alerts.push({
             msg: `${crop.name}: expected harvest date has passed. Update the crop status or harvest record.`,
             level: 'medium',
@@ -782,38 +729,24 @@ function Dashboard({
   });
 
   livestock.forEach((animal: any) => {
-    if (
-      animal.health === 'Poor' ||
-      animal.health === 'Fair'
-    ) {
+    if (animal.health === 'Poor' || animal.health === 'Fair') {
       alerts.push({
         msg: `${animal.type}: health status is ${animal.health}. Review the livestock and record any treatment or action taken.`,
-        level:
-          animal.health === 'Poor'
-            ? 'high'
-            : 'medium',
+        level: animal.health === 'Poor' ? 'high' : 'medium',
         view: 'livestock'
       });
     }
   });
 
-  if (
-    monthlyExpenses > monthlyIncome &&
-    monthlyExpenses > 0
-  ) {
+  if (monthlyExpenses > monthlyIncome && monthlyExpenses > 0) {
     alerts.push({
-      msg: `This month's expenses exceed income by ${formatMoney(
-        monthlyExpenses - monthlyIncome
-      )}. Review your farm spending and expected income.`,
+      msg: `This month's expenses exceed income by ${formatMoney(monthlyExpenses - monthlyIncome)}. Review your farm spending and expected income.`,
       level: 'high',
       view: 'money'
     });
   }
 
-  if (
-    staff.length > 0 &&
-    checkedInStaff === 0
-  ) {
+  if (staff.length > 0 && checkedInStaff === 0) {
     alerts.push({
       msg: 'No staff members are currently checked in. Update attendance if work has started today.',
       level: 'info',
@@ -821,13 +754,9 @@ function Dashboard({
     });
   }
 
-  if (
-    crops.length === 0 &&
-    livestock.length === 0 &&
-    transactions.length === 0
-  ) {
+  if (crops.length === 0 && livestock.length === 0 && transactions.length === 0 && staff.length === 0) {
     alerts.push({
-      msg: 'Welcome to EVIE. Add your crops, livestock and financial records so EVIE can begin monitoring your farm.',
+      msg: 'Welcome to EVIE. Add your crops, livestock, financial records and workers so EVIE can begin monitoring your farm.',
       level: 'info',
       view: 'crops'
     });
@@ -841,250 +770,104 @@ function Dashboard({
     });
   }
 
-  const cropHealthValues =
-    crops
-      .map((crop: any) =>
-        Number(crop.health)
-      )
-      .filter(
-        (value: number) =>
-          !Number.isNaN(value)
-      );
+  const cropHealthValues = crops
+    .map((crop: any) => Number(crop.health))
+    .filter((value: number) => !Number.isNaN(value));
 
   const cropHealth =
     cropHealthValues.length > 0
-      ? Math.round(
-          cropHealthValues.reduce(
-            (sum: number, value: number) =>
-              sum + value,
-            0
-          ) / cropHealthValues.length
-        )
+      ? Math.round(cropHealthValues.reduce((sum: number, value: number) => sum + value, 0) / cropHealthValues.length)
       : null;
 
-  const livestockHealthValues =
-    livestock.map((animal: any) => {
-      switch (animal.health) {
-        case 'Excellent':
-          return 100;
-        case 'Good':
-          return 85;
-        case 'Fair':
-          return 60;
-        case 'Poor':
-          return 35;
-        default:
-          return 75;
-      }
-    });
+  const livestockHealthValues = livestock.map((animal: any) => {
+    switch (animal.health) {
+      case 'Excellent': return 100;
+      case 'Good': return 85;
+      case 'Fair': return 60;
+      case 'Poor': return 35;
+      default: return 75;
+    }
+  });
 
   const livestockHealth =
     livestockHealthValues.length > 0
-      ? Math.round(
-          livestockHealthValues.reduce(
-            (sum: number, value: number) =>
-              sum + value,
-            0
-          ) / livestockHealthValues.length
-        )
+      ? Math.round(livestockHealthValues.reduce((sum: number, value: number) => sum + value, 0) / livestockHealthValues.length)
       : null;
 
-  const availableScores = [
-    cropHealth,
-    livestockHealth
-  ].filter(
-    (score): score is number =>
-      score !== null
+  const availableScores = [cropHealth, livestockHealth].filter(
+    (score): score is number => score !== null
   );
 
   const overallHealth =
     availableScores.length > 0
-      ? Math.round(
-          availableScores.reduce(
-            (sum, value) => sum + value,
-            0
-          ) / availableScores.length
-        )
+      ? Math.round(availableScores.reduce((sum, value) => sum + value, 0) / availableScores.length)
       : null;
 
   const healthScores = [
-    {
-      label: 'Crops',
-      score: cropHealth,
-      color: 'bg-green-600',
-      view: 'crops' as View
-    },
-    {
-      label: 'Livestock',
-      score: livestockHealth,
-      color: 'bg-blue-600',
-      view: 'livestock' as View
-    },
-    {
-      label: 'Overall',
-      score: overallHealth,
-      color: 'bg-purple-600',
-      view: 'dashboard' as View
-    }
+    { label: 'Crops', score: cropHealth, color: 'bg-green-600', view: 'crops' as View },
+    { label: 'Livestock', score: livestockHealth, color: 'bg-blue-600', view: 'livestock' as View },
+    { label: 'Overall', score: overallHealth, color: 'bg-purple-600', view: 'dashboard' as View }
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Farm Overview
-        </h1>
-
-        <p className="text-gray-600">
-          Live summary based on your farm records.
-        </p>
+        <h1 className="text-2xl font-bold text-gray-900">Farm Overview</h1>
+        <p className="text-gray-600">Live summary based on your farm records.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {stats.map((stat) => (
-          <button
-            key={stat.label}
-            onClick={() =>
-              onNavigate(stat.view)
-            }
-            className="bg-white rounded-xl border border-gray-200 p-5 text-left hover:shadow-md hover:border-green-300 transition-all active:scale-95"
-          >
-            <div
-              className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${stat.color}`}
-            >
-              <stat.icon className="w-5 h-5" />
-            </div>
-
-            <p className="text-2xl font-bold text-gray-900">
-              {stat.value}
-            </p>
-
-            <p className="font-semibold text-gray-700">
-              {stat.label}
-            </p>
-
-            <p className="text-sm text-gray-500">
-              {stat.sub}
-            </p>
-
-            <p className="text-xs text-green-600 mt-2 font-semibold">
-              Tap to view →
-            </p>
+          <button key={stat.label} onClick={() => onNavigate(stat.view)} className="bg-white rounded-xl border border-gray-200 p-5 text-left hover:shadow-md hover:border-green-300 transition-all active:scale-95">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${stat.color}`}><stat.icon className="w-5 h-5" /></div>
+            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+            <p className="font-semibold text-gray-700">{stat.label}</p>
+            <p className="text-sm text-gray-500">{stat.sub}</p>
+            <p className="text-xs text-green-600 mt-2 font-semibold">Tap to view →</p>
           </button>
         ))}
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
-          <AlertCircle className="w-5 h-5 text-orange-500" />
-          Farm Alerts
-        </h2>
-
-        <p className="text-sm text-gray-500 mb-4">
-          Alerts are generated from the records currently saved in EVIE.
-        </p>
-
+        <h2 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2"><AlertCircle className="w-5 h-5 text-orange-500" />Farm Alerts</h2>
+        <p className="text-sm text-gray-500 mb-4">Alerts are generated from the records currently saved in EVIE.</p>
         <div className="space-y-3">
-          {alerts.slice(0, 6).map(
-            (alert, index) => (
-              <button
-                key={`${alert.msg}-${index}`}
-                onClick={() =>
-                  onNavigate(alert.view)
-                }
-                className={`w-full flex items-start gap-3 p-3 rounded-lg text-left ${
-                  alert.level === 'high'
-                    ? 'bg-red-50 border border-red-200'
-                    : alert.level ===
-                      'medium'
-                    ? 'bg-orange-50 border border-orange-200'
-                    : 'bg-blue-50 border border-blue-200'
-                }`}
-              >
-                <AlertCircle
-                  className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                    alert.level === 'high'
-                      ? 'text-red-500'
-                      : alert.level ===
-                        'medium'
-                      ? 'text-orange-500'
-                      : 'text-blue-500'
-                  }`}
-                />
-
-                <p className="text-gray-700 text-sm">
-                  {alert.msg}
-                </p>
-              </button>
-            )
-          )}
+          {alerts.slice(0, 6).map((alert, index) => (
+            <button key={`${alert.msg}-${index}`} onClick={() => onNavigate(alert.view)} className={`w-full flex items-start gap-3 p-3 rounded-lg text-left ${alert.level === 'high' ? 'bg-red-50 border border-red-200' : alert.level === 'medium' ? 'bg-orange-50 border border-orange-200' : 'bg-blue-50 border border-blue-200'}`}>
+              <AlertCircle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${alert.level === 'high' ? 'text-red-500' : alert.level === 'medium' ? 'text-orange-500' : 'text-blue-500'}`} />
+              <p className="text-gray-700 text-sm">{alert.msg}</p>
+            </button>
+          ))}
         </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
-          <Heart className="w-5 h-5 text-pink-500" />
-          Farm Health Score
-        </h2>
-
-        <p className="text-sm text-gray-500 mb-4">
-          Indicative score based on the health information recorded by the farmer.
-        </p>
-
+        <h2 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2"><Heart className="w-5 h-5 text-pink-500" />Farm Health Score</h2>
+        <p className="text-sm text-gray-500 mb-4">Indicative score based on the health information recorded by the farmer.</p>
         <div className="grid grid-cols-3 gap-4">
-          {healthScores.map(
-            (health) => (
-              <button
-                key={health.label}
-                onClick={() =>
-                  onNavigate(health.view)
-                }
-                className="text-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors active:scale-95"
-              >
-                <p className="text-3xl font-bold text-gray-900">
-                  {health.score === null
-                    ? '—'
-                    : `${health.score}%`}
-                </p>
-
-                <p className="font-semibold text-gray-700">
-                  {health.label}
-                </p>
-
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                  <div
-                    className={`h-2 rounded-full ${health.color}`}
-                    style={{
-                      width: `${
-                        health.score || 0
-                      }%`
-                    }}
-                  />
-                </div>
-              </button>
-            )
-          )}
+          {healthScores.map((health) => (
+            <button key={health.label} onClick={() => onNavigate(health.view)} className="text-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors active:scale-95">
+              <p className="text-3xl font-bold text-gray-900">{health.score === null ? '—' : `${health.score}%`}</p>
+              <p className="font-semibold text-gray-700">{health.label}</p>
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2"><div className={`h-2 rounded-full ${health.color}`} style={{ width: `${health.score || 0}%` }} /></div>
+            </button>
+          ))}
         </div>
       </div>
     </div>
   );
 }
-
-function CropsView() {
-  const [crops, setCrops] = useState(() => JSON.parse(localStorage.getItem('evie_crops') || JSON.stringify([
-    { id: 1, name: 'Coffee (Robusta)', area: '2 acres', status: 'Growing', health: 88, planted: '2025-01-15', expectedHarvest: '2026-06-01' },
-    { id: 2, name: 'Matoke', area: '1.5 acres', status: 'Ready', health: 92, planted: '2025-03-01', expectedHarvest: '2026-05-20' },
-    { id: 3, name: 'Beans', area: '1.5 acres', status: 'Harvesting', health: 90, planted: '2025-04-01', expectedHarvest: '2026-05-18' },
-    { id: 4, name: 'Maize', area: '1 acre', status: 'Growing', health: 85, planted: '2025-04-15', expectedHarvest: '2026-07-01' },
-  ])));
+function CropsView({ userId }: { userId: string }) {
+  const storageKey = `evie_crops_${userId}`;
+  const [crops, setCrops] = useState(() => JSON.parse(localStorage.getItem(storageKey) || '[]'));
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', area: '', status: 'Growing', planted: '', expectedHarvest: '' });
   const save = () => {
     const updated = [...crops, { ...form, id: Date.now(), health: 85 }];
-    setCrops(updated); localStorage.setItem('evie_crops', JSON.stringify(updated));
+    setCrops(updated); localStorage.setItem(storageKey, JSON.stringify(updated));
     setForm({ name: '', area: '', status: 'Growing', planted: '', expectedHarvest: '' }); setShowForm(false);
   };
-  const remove = (id: number) => { const u = crops.filter((c: any) => c.id !== id); setCrops(u); localStorage.setItem('evie_crops', JSON.stringify(u)); };
+  const remove = (id: number) => { const u = crops.filter((c: any) => c.id !== id); setCrops(u); localStorage.setItem(storageKey, JSON.stringify(u)); };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -1133,18 +916,12 @@ function CropsView() {
   );
 }
 
-function LivestockView() {
+function LivestockView({ userId }: { userId: string }) {
   const BIRD_TYPES = ['Layers', 'Broilers', 'Kuroilers', 'Local Chicken', 'Chicks', 'Ducks', 'Turkeys', 'Geese', 'Quails', 'Guinea Fowls', 'Pigeons', 'Other Birds'];
   const ANIMAL_TYPES = ['Cattle', 'Goats', 'Pigs', 'Sheep', 'Rabbits', 'Dogs', 'Other Animals'];
 
-  const [animals, setAnimals] = useState(() => JSON.parse(localStorage.getItem('evie_livestock') || JSON.stringify([
-    { id: 1, category: 'Birds', type: 'Layers', count: 80, youngOnes: 0, health: 'Good', notes: 'Egg production active' },
-    { id: 2, category: 'Birds', type: 'Broilers', count: 40, youngOnes: 0, health: 'Good', notes: 'Ready in 3 weeks' },
-    { id: 3, category: 'Birds', type: 'Kuroilers', count: 30, youngOnes: 10, health: 'Excellent', notes: 'Mixed flock' },
-    { id: 4, category: 'Animals', type: 'Goats', count: 25, youngOnes: 8, health: 'Excellent', notes: 'Including kids' },
-    { id: 5, category: 'Animals', type: 'Pigs', count: 15, youngOnes: 6, health: 'Good', notes: 'Piglets growing well' },
-    { id: 6, category: 'Animals', type: 'Cattle', count: 6, youngOnes: 2, health: 'Good', notes: 'Dairy cows + calves' },
-  ])));
+  const storageKey = `evie_livestock_${userId}`;
+  const [animals, setAnimals] = useState(() => JSON.parse(localStorage.getItem(storageKey) || '[]'));
 
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ category: 'Birds', type: 'Layers', count: '', youngOnes: '0', health: 'Good', notes: '' });
@@ -1152,11 +929,11 @@ function LivestockView() {
 
   const save = () => {
     const updated = [...animals, { ...form, id: Date.now(), count: Number(form.count), youngOnes: Number(form.youngOnes) }];
-    setAnimals(updated); localStorage.setItem('evie_livestock', JSON.stringify(updated));
+    setAnimals(updated); localStorage.setItem(storageKey, JSON.stringify(updated));
     setForm({ category: 'Birds', type: 'Layers', count: '', youngOnes: '0', health: 'Good', notes: '' }); setShowForm(false);
   };
 
-  const remove = (id: number) => { const u = animals.filter((a: any) => a.id !== id); setAnimals(u); localStorage.setItem('evie_livestock', JSON.stringify(u)); };
+  const remove = (id: number) => { const u = animals.filter((a: any) => a.id !== id); setAnimals(u); localStorage.setItem(storageKey, JSON.stringify(u)); };
 
   const birds = animals.filter((a: any) => a.category === 'Birds');
   const animalList = animals.filter((a: any) => a.category === 'Animals');
@@ -1258,23 +1035,17 @@ function LivestockView() {
   );
 }
 
-function MoneyView() {
-  const [transactions, setTransactions] = useState(() => JSON.parse(localStorage.getItem('evie_transactions') || JSON.stringify([
-    { id: 1, type: 'income', category: 'Coffee Sales', amount: 450000, date: '2026-05-20', notes: 'Sold 100kg' },
-    { id: 2, type: 'income', category: 'Livestock Sales', amount: 280000, date: '2026-05-18', notes: 'Sold 5 goats' },
-    { id: 3, type: 'expense', category: 'Fertilizer', amount: 180000, date: '2026-05-17', notes: 'NPK fertilizer' },
-    { id: 4, type: 'expense', category: 'Feed', amount: 120000, date: '2026-05-16', notes: 'Chicken feed' },
-    { id: 5, type: 'income', category: 'Matoke Sales', amount: 85000, date: '2026-05-15', notes: '' },
-    { id: 6, type: 'expense', category: 'Labor', amount: 80000, date: '2026-05-14', notes: 'Harvesting workers' },
-  ])));
+function MoneyView({ userId }: { userId: string }) {
+  const storageKey = `evie_transactions_${userId}`;
+  const [transactions, setTransactions] = useState(() => JSON.parse(localStorage.getItem(storageKey) || '[]'));
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ type: 'income', category: '', amount: '', date: new Date().toISOString().split('T')[0], notes: '' });
   const save = () => {
     const updated = [{ ...form, id: Date.now(), amount: Number(form.amount) }, ...transactions];
-    setTransactions(updated); localStorage.setItem('evie_transactions', JSON.stringify(updated));
+    setTransactions(updated); localStorage.setItem(storageKey, JSON.stringify(updated));
     setForm({ type: 'income', category: '', amount: '', date: new Date().toISOString().split('T')[0], notes: '' }); setShowForm(false);
   };
-  const remove = (id: number) => { const u = transactions.filter((t: any) => t.id !== id); setTransactions(u); localStorage.setItem('evie_transactions', JSON.stringify(u)); };
+  const remove = (id: number) => { const u = transactions.filter((t: any) => t.id !== id); setTransactions(u); localStorage.setItem(storageKey, JSON.stringify(u)); };
   const totalIncome = transactions.filter((t: any) => t.type==='income').reduce((s: number, t: any) => s+Number(t.amount), 0);
   const totalExpenses = transactions.filter((t: any) => t.type==='expense').reduce((s: number, t: any) => s+Number(t.amount), 0);
   const profit = totalIncome - totalExpenses;
@@ -1331,21 +1102,18 @@ function MoneyView() {
   );
 }
 
-function PeopleView() {
-  const [staff, setStaff] = useState(() => JSON.parse(localStorage.getItem('evie_staff') || JSON.stringify([
-    { id: 1, name: 'Okello James', role: 'Farm Manager', phone: '+256 701 234 567', salary: 300000, checkedIn: false },
-    { id: 2, name: 'Nambi Sarah', role: 'Field Worker', phone: '+256 702 345 678', salary: 150000, checkedIn: true },
-    { id: 3, name: 'Mugisha Peter', role: 'Livestock Handler', phone: '+256 703 456 789', salary: 180000, checkedIn: true },
-  ])));
+function PeopleView({ userId }: { userId: string }) {
+  const storageKey = `evie_staff_${userId}`;
+  const [staff, setStaff] = useState(() => JSON.parse(localStorage.getItem(storageKey) || '[]'));
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', role: '', phone: '', salary: '' });
   const save = () => {
     const updated = [...staff, { ...form, id: Date.now(), salary: Number(form.salary), checkedIn: false }];
-    setStaff(updated); localStorage.setItem('evie_staff', JSON.stringify(updated));
+    setStaff(updated); localStorage.setItem(storageKey, JSON.stringify(updated));
     setForm({ name: '', role: '', phone: '', salary: '' }); setShowForm(false);
   };
-  const toggleCheckIn = (id: number) => { const u = staff.map((s: any) => s.id===id?{...s,checkedIn:!s.checkedIn}:s); setStaff(u); localStorage.setItem('evie_staff', JSON.stringify(u)); };
-  const remove = (id: number) => { const u = staff.filter((s: any) => s.id!==id); setStaff(u); localStorage.setItem('evie_staff', JSON.stringify(u)); };
+  const toggleCheckIn = (id: number) => { const u = staff.map((s: any) => s.id===id?{...s,checkedIn:!s.checkedIn}:s); setStaff(u); localStorage.setItem(storageKey, JSON.stringify(u)); };
+  const remove = (id: number) => { const u = staff.filter((s: any) => s.id!==id); setStaff(u); localStorage.setItem(storageKey, JSON.stringify(u)); };
   const checkedIn = staff.filter((s: any) => s.checkedIn).length;
   return (
     <div className="space-y-6">
@@ -1700,34 +1468,31 @@ if (trialExpired && !activeLicense && !isOwnerAdmin) {
 const renderView = () => {
   switch(currentView) {
     case 'dashboard':
-      return <Dashboard onNavigate={setCurrentView} />;
+      return <Dashboard onNavigate={setCurrentView} userId={currentUser.id} />;
     case 'crops':
-      return <CropsView />;
+      return <CropsView userId={currentUser.id} />;
     case 'livestock':
-      return <LivestockView />;
+      return <LivestockView userId={currentUser.id} />;
     case 'money':
-      return <MoneyView />;
+      return <MoneyView userId={currentUser.id} />;
     case 'people':
-      return <PeopleView />;
+      return <PeopleView userId={currentUser.id} />;
     case 'admin':
       return isOwnerAdmin
         ? <AdminActivation />
-        : <Dashboard onNavigate={setCurrentView} />;
+        : <Dashboard onNavigate={setCurrentView} userId={currentUser.id} />;
     case 'settings':
       return <SettingsView user={currentUser} farm={currentFarm} />;
     default:
-      return <Dashboard onNavigate={setCurrentView} />;
+      return <Dashboard onNavigate={setCurrentView} userId={currentUser.id} />;
   }
 };
 
   return (
     <div className={`min-h-screen bg-gray-50 ${highContrast?'high-contrast':''}`}>
-     {!isOwnerAdmin && (
-  <PaymentBanner
-    user={currentUser}
-    onPay={() => setShowPayment(true)}
-  />
-)}
+      {!isOwnerAdmin && (
+        <PaymentBanner user={currentUser} onPay={() => setShowPayment(true)} />
+      )}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="px-4 lg:px-8">
           <div className="flex items-center justify-between h-16">
